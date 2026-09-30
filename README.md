@@ -1,4 +1,4 @@
-# RunicPlatform
+# RunicPlatform - ADD AGONES
 
 RunicPlatform is the public, MIT-licensed networking and distributed coordination
 foundation for MMORPGs. Its C++ side will connect realtime clients directly to
