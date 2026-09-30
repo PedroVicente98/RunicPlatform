@@ -1,11 +1,11 @@
-# RunicFabric
+# RunicPlatform
 
-RunicFabric is the public, MIT-licensed networking and distributed coordination
+RunicPlatform is the public, MIT-licensed networking and distributed coordination
 foundation for MMORPGs. Its C++ side will connect realtime clients directly to
 authoritative C++ simulations. Its Go side will coordinate those simulations and
 provide generic infrastructure as ordinary local processes first.
 
-RunicEngine simulates the world; RunicFabric connects and coordinates simulations;
+RunicEngine simulates the world; RunicPlatform connects and coordinates simulations;
 the private RunicGame defines gameplay and content. Fabric has no dependency on
 either repository and must never know proprietary gameplay rules. Future engine
 integration belongs in narrow adapters. Go is outside the realtime movement and
@@ -73,7 +73,7 @@ This is an independent Git repository beside RunicEngine and RunicGame. No remot
 URL is assumed. Once a real remote exists, replace the placeholder and run:
 
 ```sh
-git remote add origin <actual-RunicFabric-remote-URL>
+git remote add origin <actual-RunicPlatform-remote-URL>
 git push -u origin main
 ```
 
