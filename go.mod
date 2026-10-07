@@ -1,3 +1,3 @@
-module runic.local/fabric
+module runic.local/platform
 
 go 1.26.0
