@@ -1,6 +1,6 @@
-#include <Runic/Fabric/Version.hpp>
+#include <Runic/Platform/Version.hpp>
 
-namespace Runic::Fabric
+namespace Runic::Platform
 {
 const char* Version() noexcept { return "0.1.0"; }
-} // namespace Runic::Fabric
+} // namespace Runic::Platform
