@@ -4,6 +4,25 @@ project(RunicPlatform VERSION 0.1.0 LANGUAGES CXX)
 
 option(RUNIC_PLATFORM_BUILD_TESTS "Build RunicPlatform bootstrap tests" ${PROJECT_IS_TOP_LEVEL})
 
+# RunicEngine source tree for the C++ bindings (Transport, ServerBindings), which
+# include Engine public headers only. CI and standalone builds use the submodule
+# pinned at external/RunicEngine; daily work points RUNIC_ENGINE_DIR at a sibling
+# checkout. No target needs the Engine before PTR-1 and PBND-1, so it is not added
+# to the build yet. A superproject that already provides the Engine targets
+# (RunicGame adds the Engine first) owns Engine resolution: this block then does
+# nothing and never touches its cache.
+if(NOT TARGET Runic::Core AND NOT TARGET Runic::Runtime)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/RunicEngine/CMakeLists.txt")
+        set(_runic_platform_engine_default "${CMAKE_CURRENT_SOURCE_DIR}/external/RunicEngine")
+    else()
+        set(_runic_platform_engine_default "${CMAKE_CURRENT_SOURCE_DIR}/../RunicEngine")
+    endif()
+    set(RUNIC_ENGINE_DIR "${_runic_platform_engine_default}"
+        CACHE PATH "Path to the RunicEngine source tree used by the Platform C++ bindings")
+    unset(_runic_platform_engine_default)
+    message(STATUS "RunicPlatform: RUNIC_ENGINE_DIR = ${RUNIC_ENGINE_DIR} (not built until PTR-1/PBND-1)")
+endif()
+
 add_library(runic_platform STATIC)
 add_library(Runic::Platform ALIAS runic_platform)
 target_sources(runic_platform PRIVATE cpp/Core/Version.cpp)
