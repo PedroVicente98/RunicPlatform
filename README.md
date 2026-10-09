@@ -1,42 +1,32 @@
-# RunicPlatform - ADD AGONES
+# RunicPlatform
 
-RunicPlatform (formerly RunicFabric) is the public, MIT-licensed networking and
-distributed coordination foundation for MMORPGs. Its C++ side will connect realtime
-clients directly to authoritative C++ simulations. Its Go side will coordinate those
-simulations and provide generic infrastructure as ordinary local processes first.
+RunicPlatform is the open-source (MIT) networking, services and infrastructure layer for MMORPGs built on RunicEngine: mechanisms any MMORPG can use, never one game's rules.
 
-RunicEngine simulates the world; RunicPlatform connects and coordinates simulations;
-the private RunicGame defines gameplay and content. Platform has no dependency on
-either repository and must never know proprietary gameplay rules. Future engine
-integration belongs in narrow adapters. Go is outside the realtime movement and
-combat path: `client -> C++ authoritative simulation`.
+> Status: bootstrap. The docs describe the target architecture; no Platform module is implemented yet. See [docs/current-state.md](docs/current-state.md).
 
-## Bootstrap boundaries
+## What it provides
 
-- `cpp/Core/` and `cpp/include/`: the dependency-free C++20 `Runic::Platform` library.
-  The version function is disposable build verification code.
-- `go/platform/`: a documentation-only Go package for future generic coordination.
-- `proto/`: a placeholder for future shared infrastructure schemas.
-- `tests/`: a consumer that verifies public-header inclusion and library linkage.
+| Module | Language | Provides |
+| --- | --- | --- |
+| Transport | C++ | GameNetworkingSockets implementation of the Engine transport interface; connect-ticket checks; authoritative and candidate connections; simulation-to-simulation links |
+| Contracts | Protobuf → C++ and Go | Envelopes and service APIs; games add their own messages |
+| ServerBindings | C++ | ServicesBridgeLayer (the Engine service port over asynchronous gRPC and NATS), LifecycleLayer (Agones SDK), Prometheus exporter |
+| GoSDK | Go | Service skeleton, configuration, gRPC and NATS wiring, PostgreSQL persistence, transactions, migrations, idempotency store, metrics |
+| CoreServices | Go | Accounts and entitlements, connect tickets, World Coordinator, instance allocation, world directives, chat and party groups |
+| BuildingBlocks | Go | Item ledger and currency wallets, mechanisms only |
+| Infrastructure | Configuration | Local development stack, Agones fleets, Kubernetes manifests, Prometheus and Grafana |
 
-No transport, replication, service, gameplay, or protocol is implemented yet.
-Protobuf, gRPC, NATS, PostgreSQL, Redis, and deployment tooling are deferred until
-needed by a concrete slice. Kubernetes is not required. Future distributed
-infrastructure events belong here; local simulation events belong in RunicEngine,
-and proprietary distributed game events belong in RunicGame.
+Clients talk directly to their authoritative C++ simulation; no broker, service or database sits on per-tick traffic. Durable work goes through the services bridge and Go services, and results return to the simulation at safe ticks.
 
-## C++ build
+## How it fits with the other repositories
 
-Requires CMake 3.24+, a C++20 compiler, and a supported native build tool.
-From this repository:
+- **RunicEngine** (public): generic engine mechanisms. The Platform's C++ code implements Engine interfaces (transport, service port, Layer) and includes only Engine public headers; the Engine never includes Platform code.
+- **RunicGame** (private): a game built on both. It pins RunicEngine and RunicPlatform as submodules.
+- This repository pins RunicEngine as a submodule at `external/RunicEngine`, so its C++ bindings build and test on their own.
 
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-ctest --test-dir build --output-on-failure
-```
+## Build
 
-With Ninja installed, an optional equivalent preset is available:
+C++ needs CMake 3.24+ and a C++20 compiler (Ninja for the presets):
 
 ```sh
 cmake --preset debug
@@ -44,41 +34,31 @@ cmake --build --preset debug
 ctest --preset debug
 ```
 
-`runic_platform` is a static library, exposed to CMake consumers as `Runic::Platform`.
-`RUNIC_PLATFORM_BUILD_TESTS` defaults to ON for a standalone build and OFF when
-included with `add_subdirectory()`. RunicGame includes the sibling checkout using
-its configurable `RUNIC_PLATFORM_DIR` path and an explicit separate build directory.
-Platform introduces no window, renderer, editor, or Go requirement to a C++ build.
+Without Ninja:
 
-## Go build
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
-Requires Go 1.26 or newer, as declared in `go.mod`. From this repository,
-independently of CMake:
+- The bootstrap library is `runic_platform` (alias `Runic::Platform`); `RUNIC_PLATFORM_BUILD_TESTS` defaults to ON only for a top-level build.
+- `RUNIC_ENGINE_DIR` points at the RunicEngine source tree: `external/RunicEngine` when the submodule is checked out, otherwise `../RunicEngine`. Override it with `-DRUNIC_ENGINE_DIR=<path>`. Nothing builds the Engine yet; the first C++ bindings (PTR-1, PBND-1) will.
+- Fetch the Engine pin when you need it: `git submodule update --init external/RunicEngine`.
+
+Go needs the toolchain version declared in `go.mod` (Go 1.26):
 
 ```sh
 go build ./...
 go test ./...
 ```
 
-The bootstrap package has no tests, services, or external dependencies.
-`runic.local/platform` is a local placeholder module identity, not a published
-remote. Once a public hosting path exists, update `go.mod` and imports to that
-canonical module path before publishing tagged releases. A future sibling Go
-consumer can use a local `go.work` file or a `replace` directive while developing;
-there is currently no Go consumer or workspace requirement.
+`runic.local/platform` is a placeholder module path until the canonical path is decided.
 
-## Repository and acquisition
+## Documentation
 
-This is an independent Git repository beside RunicEngine and RunicGame. No remote
-URL is assumed. Once a real remote exists, replace the placeholder and run:
+Start at [docs/README.md](docs/README.md). Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
 
-```sh
-git remote add origin <actual-RunicPlatform-remote-URL>
-git push -u origin main
-```
+## License
 
-The sibling layout is the current development workflow. Later acquisition can
-use tagged CMake FetchContent releases, submodules in a deliberate superproject
-or dependency layout, or installed/package-manager packages once packaging is
-added. No checkout duplication, fake submodule URL, or package installation/export
-support is introduced by this bootstrap.
+MIT; see [LICENSE](LICENSE).
