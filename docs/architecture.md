@@ -16,7 +16,7 @@ The Platform supplies the services every MMORPG needs, an SDK for building more,
 | Go SDK: skeleton, gRPC, NATS, PostgreSQL, transactions, idempotency | Characters, inventory rules, quest progress, economy, trade, guilds, mail, housing, durable water state and every other game rule or game-owned state (RunicGame services, stored through the Go SDK) |
 | Core services: accounts and `GlobalPlayerId` issue, entitlements, connect tickets, World Coordinator (including the world epoch), instances, world directives, chat and party groups, admission | Game messages, game data, game dashboards (RunicGame) |
 | Building blocks: item ledger and currency wallets, including one-transaction item and currency transfers; mechanisms only | What an item or a currency means |
-| Infrastructure: local stack, Agones, Kubernetes, Prometheus, Grafana | Live inspection of a server (Engine Editor attach, development builds only) |
+| Infrastructure: local stack, Agones, Kubernetes, Prometheus, Grafana | Live inspection of a server (Engine Editor attach, development and staging builds only) |
 
 ## Modules
 
@@ -101,7 +101,7 @@ The GameServer (RunicGame) composes its layer stack bottom to top:
 | Simulation: scheduler and world | Engine |
 | Services bridge: gRPC, NATS | Platform ServerBindings (PBND-1 gRPC, PBND-4 NATS) |
 | Lifecycle: Agones, or a local stub mode without Agones | Platform ServerBindings (PBND-2) |
-| Diagnostics: network and replication metrics into the Core registry, Editor attach endpoint (development builds) | Engine (NET-7) |
+| Diagnostics: network and replication metrics into the Core registry, Editor attach endpoint (development and staging builds) | Engine (NET-7) |
 
 The Engine's only door to durable services is the Simulation's service port (SIM-5, shipped as the header-only `Runic::SimulationPort`): an outbox of durable operations with stable operation IDs and an inbox of accepted results drained at safe ticks. The ServicesBridgeLayer implements it, with gRPC from slice 27 (PBND-1) and NATS from slice 30 (PBND-4):
 
@@ -132,7 +132,7 @@ Tickets are test-signed with a local key from slice 12 (PTR-2) until the account
 | Go service metrics | Platform GoSDK |
 | Fleets, allocations, game-server states | Agones, scraped by the same Prometheus |
 | One operations panel, logs included | Grafana (Platform Infrastructure, PINF-2); game dashboards live in RunicGame |
-| Live inspection (entity inspector, behavior trees, resolver traces, debug shapes) | Engine Editor attach, compiled only into development builds |
+| Live inspection (entity inspector, behavior trees, resolver traces, debug shapes) | Engine Editor attach, compiled only into development and staging builds |
 
 ## Building Go services with the SDK
 
