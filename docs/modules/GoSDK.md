@@ -14,7 +14,7 @@ When PSDK-1 starts, this file's content moves into `go/sdk/ARCHITECTURE.md` with
 
 ## Purpose
 
-Make every Go service the same kind of program, so that services differ only in their rules. Platform core services, Platform building blocks and every RunicGame service use this SDK (ARCH § Platform and operations: services). The SDK owns transactions and the idempotency store (OQ-16 decided); services own their data and rules.
+Make every Go service the same kind of program, so that services differ only in their rules. Platform core services, Platform building blocks and every RunicGame service use this SDK (ARCH § Platform and operations: services). The SDK owns transactions and the idempotency store (OQ-16 decided); services own their data and rules. Game services store every kind of durable state through it, including durable water state (for example a lock or water level that must survive restarts), which then reaches the simulation through the service port; the Platform has no water-specific service (ARCH § Water system).
 
 ## Owns
 
@@ -35,7 +35,7 @@ Make every Go service the same kind of program, so that services differ only in 
 | Any service's data model, API or rules | The service (Platform CoreServices, BuildingBlocks, or RunicGame services) |
 | Message definitions | Platform Contracts |
 | Starting PostgreSQL and NATS locally | Platform Infrastructure (PINF-1) |
-| The C++ side of service calls from a simulation | Platform ServerBindings (PBND-1) |
+| The C++ side of service calls from a simulation | Platform ServerBindings (PBND-1 for gRPC, PBND-4 for NATS) |
 | Quest progress, characters, inventory rules, economy and every other game rule | RunicGame services |
 
 ## Depends on / never depends on
@@ -89,7 +89,7 @@ func Once[T any](ctx context.Context, tx persistence.Tx, op OperationID, fn func
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform). Each package is one Claude Code session and one pull request inside `go/sdk/`.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 306. Each package is one Claude Code session and one pull request inside `go/sdk/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
@@ -109,9 +109,8 @@ Copied from ARCH § Modules, work packages and the implementation contract (Plat
 
 Slice 26 runnable result: a Go service writes to PostgreSQL idempotently on the local stack (PINF-1, PSDK-1, PSDK-2).
 
-## Open items
+## Contract-session items
 
-- ARCH's Platform module catalog lists no dependency for the Go SDK, while PSDK-1 needs PCT-1; this contract assumes the SDK uses the generated Go contracts.
 - OQ-9 (still open): the canonical Go module path. See [../system/11-open-questions.md](../system/11-open-questions.md).
 - `go.mod` declares `go 1.26.0`; every machine and CI runner that builds the SDK needs that toolchain.
 - The existing placeholder package `go/platform/` is replaced or removed by PSDK-1; it holds no code.

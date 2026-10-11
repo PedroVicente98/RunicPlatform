@@ -14,14 +14,14 @@ When PBB-1 starts, this file's content moves into `go/blocks/ARCHITECTURE.md` wi
 
 ## Purpose
 
-Give games a durable owner for items and currencies whose only promise is correctness: nothing is duplicated or lost, every change is an operation with an ID, and transfers are atomic. What an item is, who may move it and why is decided by the game's own services on top (ARCH § Platform and operations: services).
+Give games a durable owner for items and currencies whose only promise is correctness: nothing is duplicated or lost, every change is an operation with an ID, and transfers are atomic, including transfers that move items and currency together in one transaction. What an item is, who may move it and why is decided by the game's own services on top (ARCH § Platform and operations: services).
 
 ## Owns
 
 | Block | Owns | Work package |
 | --- | --- | --- |
 | Item ledger | Item instances, containers, slots, atomic transfers, operation IDs | PBB-1 |
-| Currency wallets | Balances and atomic transfers | PBB-2 |
+| Currency wallets | Balances, atomic transfers, and transfers that move ledger items and wallet currency in one transaction | PBB-2 |
 
 - The ledger's and wallets' tables, gRPC APIs (defined in Contracts) and metrics.
 - Concurrency control that keeps concurrent transfers from duplicating or losing anything.
@@ -50,6 +50,7 @@ Give games a durable owner for items and currencies whose only promise is correc
 
 - Do: make every change an operation with an ID; a retried operation commits once.
 - Do: keep transfers atomic: an item leaves one slot and enters another in one transaction, or nothing changes.
+- Do: commit a transfer that moves items and currency (for example both sides of a trade) in one transaction under one operation ID (PBB-2); never split it into two operations that can half-succeed.
 - Do: treat item and container contents as opaque payloads that the game defines.
 - Never: add stacking, binding, trade limits, item value or tier rules, or any other game rule.
 - Never: let a simulation write the ledger directly; simulations send durable operations through the ServicesBridgeLayer to a game service, which calls the ledger.
@@ -71,17 +72,19 @@ service ItemLedger {
 service CurrencyWallets {
   rpc Transfer(WalletTransferRequest) returns (WalletResult); // op_id, from, to, currency id, amount
   rpc Balance(BalanceRequest) returns (Balance);
+  rpc Exchange(ExchangeRequest) returns (ExchangeResult);     // op_id; ledger items and wallet currency
+                                                              // move in one transaction (PBB-2)
 }
 ```
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform). Each package is one Claude Code session and one pull request inside its block directory.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 306. Each package is one Claude Code session and one pull request inside its block directory.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
 | PBB-1 | Item ledger: containers, slots, atomic transfers, operation IDs; mechanisms only | Concurrent transfers never duplicate or lose an item | PSDK-2 | 28 |
-| PBB-2 | Currency wallets; mechanisms only | Defined when the expansion slices are planned | PSDK-2 | 44+ |
+| PBB-2 | Currency wallets and transfers that move ledger items and wallet currency in one transaction; mechanisms only | Defined when the expansion slices are planned | PSDK-2 | 44+ |
 
 ## Acceptance tests
 
@@ -93,7 +96,7 @@ Copied from ARCH § Modules, work packages and the implementation contract (Plat
 | PBB-2 | — | Defined when the expansion slices are planned |
 | All | Neutrality review | No game name, rule or value in code or tests |
 
-## Open items
+## Contract-session items
 
-- ARCH has game services move items and currency together atomically through "the ledger and wallets", but the ledger and wallets are separate blocks. How one operation spans both (one service and database, or a two-phase protocol) is decided before PBB-2.
-- Whether the ledger runs only as its own service or can also be linked as a library into a game service is not stated; ARCH lists building blocks among the Platform services.
+- PBB-2's one-transaction transfers commit ledger and wallet changes in the same PostgreSQL transaction (through the SDK, PSDK-2). The PBB-1 contract session lays out the ledger's storage so PBB-2 can do that without a second protocol.
+- Whether the ledger and wallets run only as their own services or can also be linked as libraries into a game service is decided in the PBB-1 contract session.

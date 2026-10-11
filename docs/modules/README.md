@@ -8,15 +8,17 @@ The catalog follows ARCH § Repositories, build targets and processes (Platform 
 
 | Module | Language | Purpose | Depends on | Packages | First slice | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [Transport](Transport.md) | C++ | GameNetworkingSockets implementation of the Engine transport interface; connect-ticket checks; authoritative and candidate connections; simulation-to-simulation links | Engine `Runic::Network` public interface; Contracts | PTR-1 to PTR-3 | 12 | Not started |
-| [Contracts](Contracts.md) | Protobuf → C++ and Go | Protobuf envelopes and service APIs, generated for C++ and Go; games add their own messages | — | PCT-1 | 12 | Not started |
-| [ServerBindings](ServerBindings.md) | C++ | ServicesBridgeLayer (Engine service port over asynchronous gRPC and NATS, completions queued for safe ticks), LifecycleLayer (Agones SDK), Prometheus exporter for the metrics the Engine Diagnostics layer collects | Engine public headers of `Runic::Application` (Layer), `Runic::Simulation` (service port), `Runic::Core` (metrics registry); Contracts | PBND-1 to PBND-3 | 27 | Not started |
+| [Transport](Transport.md) | C++ | GameNetworkingSockets implementation of the Engine transport interface; connect-ticket checks; authoritative and candidate connections; simulation-to-simulation links | Engine `Runic::NetworkTransport` (header-only transport interface); Contracts | PTR-1 to PTR-3 | 12 | Not started |
+| [Contracts](Contracts.md) | Protobuf → C++ and Go | Protobuf service APIs, published facts and the connect-ticket format, generated for C++ and Go; games add their own messages. Realtime messages are encoded by `Runic::Network`, not Protobuf | — | PCT-1 | 12 | Not started |
+| [ServerBindings](ServerBindings.md) | C++ | ServicesBridgeLayer (Engine service port over asynchronous gRPC and NATS, completions queued for safe ticks), LifecycleLayer (Agones SDK, local stub mode), Prometheus exporter for the Core metrics registry | Engine interface targets only: `Runic::Application` (Layer), `Runic::SimulationPort` (header-only service port), `Runic::Core` (metrics registry); Contracts | PBND-1 to PBND-4 | 27 | Not started |
 | [GoSDK](GoSDK.md) | Go | Service skeleton, configuration, gRPC and NATS wiring, PostgreSQL persistence, transactions, migrations, idempotency store, metrics | Contracts (generated Go code) | PSDK-1 to PSDK-3 | 26 | Not started |
-| [CoreServices](CoreServices.md) | Go | Accounts and entitlements, connect tickets, World Coordinator, instance allocation, world directives, chat and party groups | GoSDK, Contracts | PCS-1 to PCS-5 | 27 | Not started |
-| [BuildingBlocks](BuildingBlocks.md) | Go | Item ledger (containers, slots, atomic transfers, operation IDs) and currency wallets; mechanisms only | GoSDK, Contracts | PBB-1, PBB-2 | 28 | Not started |
+| [CoreServices](CoreServices.md) | Go | Accounts and entitlements, connect tickets, World Coordinator, instance allocation, world directives, chat and party groups, admission | GoSDK, Contracts | PCS-1 to PCS-6 | 27 | Not started |
+| [BuildingBlocks](BuildingBlocks.md) | Go | Item ledger (containers, slots, atomic transfers, operation IDs), currency wallets and transfers that move items and currency in one transaction; mechanisms only | GoSDK, Contracts | PBB-1, PBB-2 | 28 | Not started |
 | [Infrastructure](Infrastructure.md) | Configuration | Local development stack, Agones fleets, Kubernetes manifests, Prometheus and Grafana dashboards | — (runtime only) | PINF-1, PINF-2 | 26 | Not started |
 
-No Platform module depends on RunicGame. Only the two C++ modules include Engine headers, and only Engine public interface headers. Go modules need no Engine code.
+No Platform module depends on RunicGame. Only the two C++ modules link Engine targets, and only the Engine interface targets `Runic::Core`, `Runic::Application`, `Runic::NetworkTransport` and `Runic::SimulationPort`. `Runic::NetworkTransport` and `Runic::SimulationPort` are header-only with Core types only, so a standalone Platform build configures Core and Application and never Flecs, Jolt or the gameplay modules. Go modules need no Engine code.
+
+ARCH's Platform module table (ARCH § Repositories, build targets and processes) lists Contracts as the dependency of Transport and of the Go SDK, and the Go SDK as the dependency of CoreServices and BuildingBlocks; the catalog above also names Contracts for the Go services because their APIs are defined there.
 
 ## Directory layout
 
@@ -45,11 +47,11 @@ The layout keeps the folders the repository already has (`cpp/`, `go/`, `proto/`
 | 26. Service foundation | A Go service writes to PostgreSQL idempotently on the local stack | PINF-1, PSDK-1, PSDK-2 | — |
 | 27. Accounts and characters | Log in, receive a real ticket, load and save a character | PCS-1, PBND-1 | SIM-5 (Engine); GSVC-1 (defined in RunicGame) |
 | 28. Persistence | Kill, loot, log out, keep the item | PBB-1 | GPL-4 (Engine); GSVC-2, GSRV-1 (defined in RunicGame) |
-| 30. Quests | A persistent quest driven by gameplay facts | PSDK-3 | QST-1, QST-2 (Engine); GSVC-3, GSRV-3 (defined in RunicGame) |
+| 30. Quests | A persistent quest driven by gameplay facts | PSDK-3, PBND-4 | QST-1, QST-2 (Engine); GSVC-3, GSRV-3 (defined in RunicGame) |
 | 36. Multiple simulations | Walk from simulation A into B | PCS-2, PTR-3 | DSIM-1, DSIM-2, DSIM-3, NET-5 (Engine) |
 | 39. Operations | Fleets on Agones, the Grafana panel, Editor live attach | PBND-2, PBND-3, PINF-2 | NET-7, EDT-7 (Engine) |
 | 43. Tides, waves and weather | A tide opens a path; a storm reaches two simulations at the same world time | PCS-3 | ENV-4, ENV-5 (Engine); GWTH-1 (defined in RunicGame) |
-| 44+. Expansion | Defined when the expansion slices are planned | PCS-4, PCS-5, PBB-2 | Engine and RunicGame packages |
+| 44+. Expansion | Defined when the expansion slices are planned | PCS-4, PCS-5, PCS-6, PBB-2 | Engine and RunicGame packages |
 
 Slice 0 (BUILD-1) also writes in this repository: the module helper, presets, CI, the test framework, the headless and forbidden-dependency checks, the x86-64-v3 CPU baseline, and the CI use of the Engine submodule pin (the pin itself already exists at `external/RunicEngine`). See [../system/12-work-packages.md](../system/12-work-packages.md) for every package and [../system/08-implementation-roadmap.md](../system/08-implementation-roadmap.md) for the roadmap.
 

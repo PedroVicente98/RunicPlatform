@@ -2,7 +2,7 @@
 
 This file records what exists in the repository today, how far it is from Technical Architecture v3, and what comes next.
 
-Updated 2026-10-09, on branch `docs/v3-regeneration`, when the docs were regenerated from ARCH (Technical Architecture v3, revision 263). Update this file in the same pull request as any code that changes it.
+Updated 2026-10-11, on branch `docs/v3-regeneration`, when the docs were brought up to ARCH (Technical Architecture v3) revision 306. They were first regenerated from revision 263 on 2026-10-09. Update this file in the same pull request as any code that changes it.
 
 ## Owner action required: repository visibility
 
@@ -15,7 +15,7 @@ Updated 2026-10-09, on branch `docs/v3-regeneration`, when the docs were regener
 
 ## Summary
 
-Bootstrap only. The repository proves that a C++ library and a Go module build. None of the seven v3 modules exists yet; no work package is merged. This change regenerated the docs from ARCH and pinned RunicEngine as a submodule for standalone C++ builds.
+Bootstrap only. The repository proves that a C++ library and a Go module build. None of the seven v3 modules exists yet; no work package is merged. On this branch the docs were regenerated from ARCH v3 and updated to revision 306, and RunicEngine was pinned as a submodule for standalone C++ builds.
 
 ## What exists
 
@@ -29,7 +29,7 @@ Bootstrap only. The repository proves that a C++ library and a Go module build. 
 | Schemas | `proto/README.md` placeholder; no `.proto` file and no code generation. `.gitignore` already reserves `proto/generated/`, `cpp/generated/` and `go/generated/`. |
 | Engine pin (added in this change) | `.gitmodules` entry `external/RunicEngine` → `https://github.com/PedroVicente98/RunicEngine.git`, gitlink at RunicEngine `fb84529a58e827a10ee2bf1517e6005429db814a` (RunicEngine `main` on 2026-10-09). The submodule is not checked out by default; run `git submodule update --init external/RunicEngine` to fetch it. |
 | `RUNIC_ENGINE_DIR` (added in this change) | CMake cache path, defined only when no Engine target exists yet (so a RunicGame superproject is never affected). Default: `external/RunicEngine` when it has a `CMakeLists.txt`, otherwise `../RunicEngine`. Nothing uses it yet; the Engine is not added to the build. |
-| Docs | `docs/` regenerated from ARCH v3 in this change: [architecture.md](architecture.md), [modules/README.md](modules/README.md) and seven module contracts. `docs/system/` is shared with the other two repositories and is not edited in this change. |
+| Docs | `docs/` regenerated from ARCH v3 on this branch and updated to revision 306: [architecture.md](architecture.md), [modules/README.md](modules/README.md) and seven module contracts. `docs/system/` is shared with the other two repositories; this repository's copy is replaced by the coordinator and is not edited here. |
 | License | MIT (`LICENSE`). See the owner action above. |
 
 ## Gaps against v3
@@ -41,8 +41,10 @@ Bootstrap only. The repository proves that a C++ library and a Go module build. 
 | Module layout | `cpp/Core/`, `cpp/include/` | `cpp/<Module>/{Public,Source,Tests}` + `ARCHITECTURE.md` + `CMakeLists.txt` via `runic_add_module` | [modules/README.md](modules/README.md#directory-layout) |
 | Build skeleton | No module helper, no CI, no headless or forbidden-dependency check, no CPU baseline | BUILD-1: `runic_add_module`, presets, CI, one test framework for all three repositories, automated checks, x86-64-v3 (AVX2, FMA) | ARCH § Modules, work packages and the implementation contract (Engine: foundation, BUILD-1) |
 | Test framework | Plain executable returning 0 or 1 | The C++ framework chosen in BUILD-1 (the BUILD-1 session asks the owner); Go uses `testing` | OQ-7 in [system/11-open-questions.md](system/11-open-questions.md) |
-| Engine dependency | Pinned (`external/RunicEngine`) but unused | Transport and ServerBindings include Engine public headers from PTR-1 and PBND-1 | [architecture.md](architecture.md#repository-wiring) |
-| Contracts | `proto/` placeholder | Protobuf envelopes and service APIs with C++ and Go generation (PCT-1) | [modules/Contracts.md](modules/Contracts.md) |
+| Engine dependency | Pinned (`external/RunicEngine`) but unused | Transport links `Runic::NetworkTransport` from PTR-1; ServerBindings links `Runic::Core`, `Runic::Application` and `Runic::SimulationPort` from PBND-1 | [architecture.md](architecture.md#repository-wiring) |
+| Engine interface targets | The pinned Engine commit `fb84529` defines `Runic::Core` (include root only), `Runic::Runtime` and `Runic::Presentation`. Configuring it always fetches Flecs, glm and Jolt (`runic_engine_dependencies()`), so a standalone Platform build that added it today would configure Flecs and Jolt | Header-only `Runic::NetworkTransport` (NET-1, slice 12) and `Runic::SimulationPort` (SIM-5, slice 27) with Core types only, and an Engine configuration that builds only Core, Application and those two targets for the Platform. This is Engine work (BUILD-1, NET-1, SIM-5); if those contracts do not provide such a configuration, PTR-1 or PBND-1 reports it to the Engine instead of working around it | ARCH § Modules, work packages and the implementation contract (Platform) |
+| Jolt and CPU baseline | The pinned Engine fetches Jolt 5.2.0 with its SIMD paths off; the Platform links no Jolt | Jolt 5.6.0 in double precision with its AVX2 path, on an x86-64-v3 baseline, delivered by Engine BUILD-1 and PHYS-1. The Platform's part of BUILD-1 sets the x86-64-v3 baseline for its own C++ and still never links Jolt | ARCH § Decisions log (Jolt version, CPU baseline) |
+| Contracts | `proto/` placeholder | Protobuf service APIs, published facts and the connect-ticket format with C++ and Go generation (PCT-1); never per-tick traffic | [modules/Contracts.md](modules/Contracts.md) |
 | Go module path | Placeholder `runic.local/platform` | Canonical path still open | OQ-9 in [system/11-open-questions.md](system/11-open-questions.md) |
 | Go toolchain | `go.mod` requires Go 1.26.0 | Every machine and CI runner needs it | — |
 | README | Was titled "RunicPlatform - ADD AGONES" with bootstrap-era scope | Rewritten in this change from v3 | [../README.md](../README.md) |
@@ -59,6 +61,15 @@ RunicGame links `Runic::Platform` and includes `<Runic/Platform/Version.hpp>`, f
 | `RUNIC_ENGINE_DIR` default and guard | Checked in scratch builds: `external/RunicEngine` is chosen when it has a `CMakeLists.txt`; `-DRUNIC_ENGINE_DIR=<path>` wins; a superproject that defines `Runic::Runtime` first keeps its own cache value and the block prints nothing. |
 | `go build ./... && go test ./...` | Not run as declared: the machine has Go 1.24.7, `go.mod` requires 1.26.0 and the toolchain download is offline. With a temporary `go 1.24` modfile, `go build`, `go vet` and `go test` pass (no test files). |
 
+## Verification of the revision 306 update (2026-10-11)
+
+| Check | Result |
+| --- | --- |
+| Package rows in `docs/modules/*.md` against ARCH revision 306 | Every PCT, PTR, PSDK, PBND, PCS, PBB and PINF row matches ARCH word for word (PBND-4 and PCS-6 added) |
+| Relative links in `docs/` outside `docs/system/` | No broken file or anchor link |
+| Public-repository rule (search for game names, statuses, places, numbers and monetization terms outside `docs/system/`) | No hit |
+| Code and build files | Unchanged in this update |
+
 ## Next steps
 
 Work packages are taken in roadmap order; each one is a single session and pull request inside one module, contract first.
@@ -73,4 +84,6 @@ Work packages are taken in roadmap order; each one is a single session and pull 
 | 5 | 26. Service foundation | PSDK-1 (GoSDK) | PCT-1 |
 | 6 | 26. Service foundation | PSDK-2 (GoSDK) | PSDK-1 |
 
-PCT-1 can run alongside the Engine's NET-1, and PINF-1 can start at any time. Before PCT-1, the owner should settle OQ-9 (canonical Go module path), because generated Go import paths depend on it.
+PCT-1 can run alongside the Engine's NET-1, and PINF-1 can start at any time. Before PCT-1, the owner should settle OQ-9 (canonical Go module path), because generated Go import paths depend on it. PTR-1 also needs the Engine pin moved to a commit that has `Runic::NetworkTransport` (NET-1); moving the pin is its own reviewed change.
+
+After slice 26, the Platform packages follow the roadmap: PCS-1 and PBND-1 (slice 27; PBND-1 needs PCT-1, APP-1 and SIM-5), PBB-1 (28), PSDK-3 and PBND-4 (30), PCS-2 and PTR-3 (36), PBND-2, PBND-3 and PINF-2 (39), PCS-3 (43), then PCS-4, PCS-5, PCS-6 and PBB-2 (44+).

@@ -27,13 +27,17 @@ The source of truth is ARCH (RunicEngine — Technical Architecture v3); these d
   tests or docs (for example no inventory, quest, trade, economy or combat rules). Game services are
   RunicGame code built on the Go SDK, the item ledger and the wallets.
 - Never depend on RunicGame.
-- Touch the Engine only through its public interfaces: the `Runic::Network` transport interface and
-  connect-ticket hook, the `Runic::Application` Layer, the `Runic::Simulation` service port and the
-  `Runic::Core` metrics registry. Direction: Platform C++ includes Engine public headers; the Engine
-  never includes Platform code. Never include an Engine `Source/` folder. If the Engine interface
-  needs a change, report it instead of working around it.
+- Link only the Engine interface targets: `Runic::NetworkTransport` (header-only transport interface
+  and connect-ticket hook), `Runic::SimulationPort` (header-only service port), `Runic::Application`
+  (Layer) and `Runic::Core` (plain ID types, metrics registry). Never link `Runic::Network`,
+  `Runic::Simulation`, Flecs, Jolt or a gameplay module; a standalone build never configures them.
+  Direction: Platform C++ includes Engine interface headers; the Engine never includes Platform code.
+  Never include an Engine `Source/` folder. If the Engine interface needs a change, report it instead
+  of working around it.
 - The realtime path is direct and broker-free: no NATS, gRPC, database or Agones on per-tick
-  replication, ghost or combat traffic.
+  replication, ghost or combat traffic. `Runic::Network` encodes every realtime message, envelope
+  included; Protobuf (Contracts) carries only service APIs, published facts and the connect-ticket
+  format, never per-tick traffic.
 - Nothing the Platform does may block a simulation tick: I/O runs on its own threads, completions go
   to queues the simulation drains at safe ticks, and no I/O callback touches Flecs.
 - Every durable change is an operation with an ID; retries must be safe (Go SDK idempotency store).

@@ -18,7 +18,7 @@ Run everything the Platform and the Game need outside the simulation: locally wi
 
 ## Owns
 
-- The local development stack: PostgreSQL and NATS started by one command (PINF-1). Gameplay work never needs Kubernetes: a developer runs GameServer directly with a local lifecycle stub and, only when a feature needs them, local NATS and Go services.
+- The local development stack: PostgreSQL and NATS started by one command (PINF-1). Gameplay work never needs Kubernetes: a developer runs GameServer directly, without a lifecycle layer or with the LifecycleLayer's local stub mode (PBND-2), and, only when a feature needs them, local NATS and Go services.
 - Agones fleets for GameServer: one region per simulation pod by default; pods request whole vCPUs (PINF-2).
 - Kubernetes manifests for Platform services and building blocks, and the deployment pattern Game services reuse (PINF-2).
 - Prometheus scraping of the GameServer exporters (PBND-3), the Go services (through the SDK) and Agones (PINF-2).
@@ -28,8 +28,8 @@ Run everything the Platform and the Game need outside the simulation: locally wi
 
 | Responsibility | Owner |
 | --- | --- |
-| Collecting simulation metrics | Engine Diagnostics layer (NET-7) |
-| Exporting simulation metrics | Platform ServerBindings (PBND-3) |
+| Recording simulation metrics | Every GameServer, in the Core metrics registry (CORE-2); the Engine Diagnostics layer (NET-7) adds network and replication metrics |
+| Exporting simulation metrics | Platform ServerBindings (PBND-3 publishes the Core registry) |
 | Agones SDK calls inside the server | Platform ServerBindings (PBND-2) |
 | Placement decisions (which region runs where, when to move or resize) | Platform CoreServices (World Coordinator) |
 | Dashboards for game metrics | RunicGame |
@@ -80,12 +80,12 @@ infra/
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform). Each package is one Claude Code session and one pull request inside `infra/`.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 306. Each package is one Claude Code session and one pull request inside `infra/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
 | PINF-1 | Local development stack (PostgreSQL, NATS) started by one command | The stack starts and the service tests pass against it | — | 26 |
-| PINF-2 | Agones fleets, Kubernetes manifests, Prometheus and Grafana dashboards | A fleet runs in a development cluster with its dashboards | PBND-2, PBND-3 | 39 |
+| PINF-2 | Agones fleets, Kubernetes manifests, Prometheus and Grafana dashboards | A fleet runs in a development cluster, servers report Ready, and Grafana shows time per tick domain | PBND-2, PBND-3 | 39 |
 
 ## Acceptance tests
 
@@ -93,10 +93,10 @@ Copied from ARCH § Modules, work packages and the implementation contract (Plat
 | --- | --- | --- |
 | PINF-1 | One command | The stack starts with one command and the PSDK-2 service tests pass against it |
 | PINF-1 | Teardown | The stack stops and leaves nothing running |
-| PINF-2 | Fleet | A GameServer fleet runs in a development cluster; servers reach Ready and drain cleanly |
+| PINF-2 | Fleet | A GameServer fleet runs in a development cluster; servers report Ready (through PBND-2) and drain cleanly |
 | PINF-2 | Panel | Grafana shows time per tick domain, Go service metrics and Agones fleet state on one panel (slice 39) |
 
-## Open items
+## Contract-session items
 
 - The container tool for the local stack (for example Docker Compose or Podman) is chosen in PINF-1.
 - Where container images for Platform services are built and published is not specified in ARCH.

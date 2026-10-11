@@ -9,18 +9,18 @@ RunicPlatform is the open-source (MIT) networking, services and infrastructure l
 | Module | Language | Provides |
 | --- | --- | --- |
 | Transport | C++ | GameNetworkingSockets implementation of the Engine transport interface; connect-ticket checks; authoritative and candidate connections; simulation-to-simulation links |
-| Contracts | Protobuf → C++ and Go | Envelopes and service APIs; games add their own messages |
-| ServerBindings | C++ | ServicesBridgeLayer (the Engine service port over asynchronous gRPC and NATS), LifecycleLayer (Agones SDK), Prometheus exporter |
+| Contracts | Protobuf → C++ and Go | Service APIs, published facts and the connect-ticket format; games add their own messages. Never per-tick traffic: the Engine encodes realtime messages |
+| ServerBindings | C++ | ServicesBridgeLayer (the Engine service port over asynchronous gRPC and NATS), LifecycleLayer (Agones SDK, with a local stub mode), Prometheus exporter for the Engine's Core metrics registry |
 | GoSDK | Go | Service skeleton, configuration, gRPC and NATS wiring, PostgreSQL persistence, transactions, migrations, idempotency store, metrics |
-| CoreServices | Go | Accounts and entitlements, connect tickets, World Coordinator, instance allocation, world directives, chat and party groups |
-| BuildingBlocks | Go | Item ledger and currency wallets, mechanisms only |
+| CoreServices | Go | Accounts and entitlements, connect tickets, World Coordinator, instance allocation, world directives, chat and party groups, admission |
+| BuildingBlocks | Go | Item ledger and currency wallets, including item and currency transfers in one transaction; mechanisms only |
 | Infrastructure | Configuration | Local development stack, Agones fleets, Kubernetes manifests, Prometheus and Grafana |
 
 Clients talk directly to their authoritative C++ simulation; no broker, service or database sits on per-tick traffic. Durable work goes through the services bridge and Go services, and results return to the simulation at safe ticks.
 
 ## How it fits with the other repositories
 
-- **RunicEngine** (public): generic engine mechanisms. The Platform's C++ code implements Engine interfaces (transport, service port, Layer) and includes only Engine public headers; the Engine never includes Platform code.
+- **RunicEngine** (public): generic engine mechanisms. The Platform's C++ code implements Engine interfaces (transport, service port, Layer) and links only the Engine interface targets `Runic::Core`, `Runic::Application`, `Runic::NetworkTransport` and `Runic::SimulationPort`, so a standalone build never configures Flecs, Jolt or gameplay modules; the Engine never includes Platform code.
 - **RunicGame** (private): a game built on both. It pins RunicEngine and RunicPlatform as submodules.
 - This repository pins RunicEngine as a submodule at `external/RunicEngine`, so its C++ bindings build and test on their own.
 
@@ -43,7 +43,7 @@ ctest --test-dir build --output-on-failure
 ```
 
 - The bootstrap library is `runic_platform` (alias `Runic::Platform`); `RUNIC_PLATFORM_BUILD_TESTS` defaults to ON only for a top-level build.
-- `RUNIC_ENGINE_DIR` points at the RunicEngine source tree: `external/RunicEngine` when the submodule is checked out, otherwise `../RunicEngine`. Override it with `-DRUNIC_ENGINE_DIR=<path>`. Nothing builds the Engine yet; the first C++ bindings (PTR-1, PBND-1) will.
+- `RUNIC_ENGINE_DIR` points at the RunicEngine source tree: `external/RunicEngine` when the submodule is checked out, otherwise `../RunicEngine`. Override it with `-DRUNIC_ENGINE_DIR=<path>`. Nothing builds the Engine yet; the first C++ bindings (PTR-1, PBND-1) will, using only those interface targets.
 - Fetch the Engine pin when you need it: `git submodule update --init external/RunicEngine`.
 
 Go needs the toolchain version declared in `go.mod` (Go 1.26):
