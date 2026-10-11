@@ -8,7 +8,7 @@ RunicPlatform is the public (MIT) networking, services and infrastructure reposi
 
 | Item | Value |
 | --- | --- |
-| Architecture source | ARCH: "RunicEngine — Technical Architecture v3" (revision 306, exported 2026-10-11) |
+| Architecture source | ARCH: "RunicEngine — Technical Architecture v3" (revision 369, exported 2026-10-11) |
 | Rule | These docs are generated from ARCH. When a doc and ARCH disagree, ARCH wins; report the difference instead of choosing silently. |
 | Earlier docs | The v0 docs (built from "Appendix J") were replaced on 2026-10-09; do not use v0 module names (Realtime, ServiceRuntime, Persistence, Identity, WorldControl, Orchestration, Observability, NetworkAdapter). |
 

@@ -21,7 +21,8 @@ Give games a durable owner for items and currencies whose only promise is correc
 | Block | Owns | Work package |
 | --- | --- | --- |
 | Item ledger | Item instances, containers, slots, atomic transfers, operation IDs | PBB-1 |
-| Currency wallets | Balances, atomic transfers, and transfers that move ledger items and wallet currency in one transaction | PBB-2 |
+| Currency wallets | Balances and atomic transfers with operation IDs | PBB-2 |
+| One-transaction transfers | Transfers that move ledger items and wallet currency together in one transaction | PBB-3 |
 
 - The ledger's and wallets' tables, gRPC APIs (defined in Contracts) and metrics.
 - Concurrency control that keeps concurrent transfers from duplicating or losing anything.
@@ -50,14 +51,14 @@ Give games a durable owner for items and currencies whose only promise is correc
 
 - Do: make every change an operation with an ID; a retried operation commits once.
 - Do: keep transfers atomic: an item leaves one slot and enters another in one transaction, or nothing changes.
-- Do: commit a transfer that moves items and currency (for example both sides of a trade) in one transaction under one operation ID (PBB-2); never split it into two operations that can half-succeed.
+- Do: commit a transfer that moves items and currency (for example both sides of a trade) in one transaction under one operation ID (PBB-3); never split it into two operations that can half-succeed.
 - Do: treat item and container contents as opaque payloads that the game defines.
 - Never: add stacking, binding, trade limits, item value or tier rules, or any other game rule.
 - Never: let a simulation write the ledger directly; simulations send durable operations through the ServicesBridgeLayer to a game service, which calls the ledger.
 
 ## Interfaces it implements or exposes (sketch)
 
-Illustrative only; PBB-1 and PBB-2 fix the APIs in Contracts.
+Illustrative only; PBB-1, PBB-2 and PBB-3 fix the APIs in Contracts.
 
 ```protobuf
 // Illustrative, not a frozen schema.
@@ -73,18 +74,19 @@ service CurrencyWallets {
   rpc Transfer(WalletTransferRequest) returns (WalletResult); // op_id, from, to, currency id, amount
   rpc Balance(BalanceRequest) returns (Balance);
   rpc Exchange(ExchangeRequest) returns (ExchangeResult);     // op_id; ledger items and wallet currency
-                                                              // move in one transaction (PBB-2)
+                                                              // move in one transaction (PBB-3)
 }
 ```
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 306. Each package is one Claude Code session and one pull request inside its block directory.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369. Each package is one Claude Code session and one pull request inside its block directory.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
 | PBB-1 | Item ledger: containers, slots, atomic transfers, operation IDs; mechanisms only | Concurrent transfers never duplicate or lose an item | PSDK-2 | 28 |
-| PBB-2 | Currency wallets and transfers that move ledger items and wallet currency in one transaction; mechanisms only | Defined when the expansion slices are planned | PSDK-2 | 44+ |
+| PBB-2 | Currency wallets: balances and atomic transfers with operation IDs; mechanisms only | A balance changes once per operation ID under concurrent requests | PSDK-2 | 33a |
+| PBB-3 | One-transaction transfers that move ledger items and wallet currency together; mechanisms only | Defined when the expansion slices are planned | PBB-1, PBB-2 | 44+ |
 
 ## Acceptance tests
 
@@ -93,10 +95,12 @@ Copied from ARCH § Modules, work packages and the implementation contract (Plat
 | PBB-1 | Concurrent transfers | Many concurrent transfers of the same items never duplicate or lose one |
 | PBB-1 | Replay | A transfer replayed with the same operation ID changes nothing |
 | PBB-1 | Slice 28 | Kill, loot, log out, keep the item (with GPL-4, GSVC-2 and GSRV-1; GSVC-2 and GSRV-1 are defined in RunicGame) |
-| PBB-2 | — | Defined when the expansion slices are planned |
+| PBB-2 | Concurrent wallet operations | A balance changes once per operation ID under concurrent requests |
+| PBB-2 | Slice 33a | The exploration prototype runs end to end (with GSRV-5, GSRV-6, GSVC-5 and GCL-4, defined in RunicGame) |
+| PBB-3 | — | Defined when the expansion slices are planned |
 | All | Neutrality review | No game name, rule or value in code or tests |
 
 ## Contract-session items
 
-- PBB-2's one-transaction transfers commit ledger and wallet changes in the same PostgreSQL transaction (through the SDK, PSDK-2). The PBB-1 contract session lays out the ledger's storage so PBB-2 can do that without a second protocol.
+- PBB-3's one-transaction transfers commit ledger and wallet changes in the same PostgreSQL transaction (through the SDK, PSDK-2). The PBB-1 and PBB-2 contract sessions lay out the ledger's and wallets' storage so PBB-3 can do that without a second protocol.
 - Whether the ledger and wallets run only as their own services or can also be linked as libraries into a game service is decided in the PBB-1 contract session.

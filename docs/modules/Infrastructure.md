@@ -80,7 +80,7 @@ infra/
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 306. Each package is one Claude Code session and one pull request inside `infra/`.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369. Each package is one Claude Code session and one pull request inside `infra/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |

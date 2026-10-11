@@ -95,13 +95,13 @@ Session start (ARCH § Networking: stack, sessions and responsiveness)
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 306. Each package is one Claude Code session and one pull request inside its service directory.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369. Each package is one Claude Code session and one pull request inside its service directory.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
 | PCS-1 | Accounts and entitlements, GlobalPlayerId issue, login, connect tickets signed with rotating keys whose public halves the simulations load | Login returns a signed ticket the simulation accepts | PSDK-2, PTR-2 | 27 |
 | PCS-2 | World Coordinator: region map, neighbor topology, handoff candidates, the world epoch | The Coordinator names the candidates for a border | PSDK-1 | 36 |
-| PCS-3 | World directives with an effective time (weather events) | A directive applies at the same world time everywhere | PSDK-3 | 43 |
+| PCS-3 | World directives with an effective time (weather events) | A directive applies at the same world time everywhere | PSDK-3, PBND-4 | 43 |
 | PCS-4 | Instance allocation from Agones fleets | Defined when the expansion slices are planned | PCS-2, PINF-2 | 44+ |
 | PCS-5 | Chat and party groups | Defined when the expansion slices are planned | PSDK-3 | 44+ |
 | PCS-6 | Admission: per-world capacity limits, login queue and cohort waves for the launch phases | Defined when the expansion slices are planned | PCS-1 | 44+ |

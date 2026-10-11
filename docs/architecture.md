@@ -2,7 +2,7 @@
 
 This file explains how RunicPlatform is organized, how it connects to RunicEngine and RunicGame, and the rules every Platform change must keep.
 
-Source: ARCH (RunicEngine — Technical Architecture v3, revision 306), mainly § Repositories, build targets and processes, § Modules, work packages and the implementation contract, § Networking: stack, sessions and responsiveness, § Networking: replication, interest and handoff, and § Platform and operations. When this file and ARCH disagree, ARCH wins.
+Source: ARCH (RunicEngine — Technical Architecture v3, revision 369), mainly § Repositories, build targets and processes, § Modules, work packages and the implementation contract, § Networking: stack, sessions and responsiveness, § Networking: replication, interest and handoff, and § Platform and operations. When this file and ARCH disagree, ARCH wins.
 
 ## Scope: mechanisms, never policy
 
@@ -27,7 +27,7 @@ The Platform supplies the services every MMORPG needs, an SDK for building more,
 | ServerBindings | C++ | PBND-1 to PBND-4 | [modules/ServerBindings.md](modules/ServerBindings.md) |
 | GoSDK | Go | PSDK-1 to PSDK-3 | [modules/GoSDK.md](modules/GoSDK.md) |
 | CoreServices | Go | PCS-1 to PCS-6 | [modules/CoreServices.md](modules/CoreServices.md) |
-| BuildingBlocks | Go | PBB-1, PBB-2 | [modules/BuildingBlocks.md](modules/BuildingBlocks.md) |
+| BuildingBlocks | Go | PBB-1 to PBB-3 | [modules/BuildingBlocks.md](modules/BuildingBlocks.md) |
 | Infrastructure | Configuration | PINF-1, PINF-2 | [modules/Infrastructure.md](modules/Infrastructure.md) |
 
 The catalog with dependencies, directories and slices is [modules/README.md](modules/README.md).
@@ -145,7 +145,7 @@ Every Platform and Game Go service is built the same way:
 5. Publish or consume facts through the SDK's NATS wiring when no answer is needed (PSDK-3).
 6. Run locally against the one-command stack (PINF-1); deploy with the Kubernetes manifests (PINF-2).
 
-Game services that hold items or currencies call the item ledger (PBB-1) and wallets (PBB-2), which apply no game rule. A transfer that moves items and currency together commits in one transaction (PBB-2). Game state with no Platform building block, for example durable water state, is stored by a Game service on the Go SDK and reaches the simulation through the service port.
+Game services that hold items or currencies call the item ledger (PBB-1) and wallets (PBB-2), which apply no game rule. A transfer that moves items and currency together commits in one transaction (PBB-3). Game state with no Platform building block, for example durable water state, is stored by a Game service on the Go SDK and reaches the simulation through the service port.
 
 ## Idempotency
 
