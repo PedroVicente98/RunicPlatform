@@ -1,0 +1,3 @@
+[submodule "external/RunicEngine"]
+	path = external/RunicEngine
+	url = https://github.com/PedroVicente98/RunicEngine.git

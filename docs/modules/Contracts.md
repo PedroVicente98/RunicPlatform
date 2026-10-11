@@ -1,97 +1,119 @@
 # Contracts
 
-> **Contract seed.** When the `Contracts/` module is created, copy this file to
-> `Contracts/ARCHITECTURE.md`; from then on that file is authoritative.
-> Purpose, Owns, Does not own, Allowed dependencies, and Primary consumers come
-> from Appendix J §J.5.1 and §J.7.2. Other sections are derived and are proposals
-> until confirmed.
+This file is the contract of the Platform Contracts module: the Protobuf service APIs, published facts and connect-ticket format shared by C++ and Go, generated for both languages.
 
 | Field | Value |
 | --- | --- |
-| Directory | `Contracts/` |
-| Implementation | Schema sources + generated C++ and Go bindings (proposal, [OQ-9](../system/11-open-questions.md#oq-9)) |
-| Roadmap phase | 4 — first multiplayer (grows with every phase that adds traffic) |
-| Status | Not started (`proto/` placeholder exists; Protobuf deferred) |
+| Language | Protobuf schemas; generated C++ and Go |
+| Directory | `proto/` (schema sources); generated code in the git-ignored `cpp/generated/` and `go/generated/` (already reserved in `.gitignore`) |
+| CMake target or Go package | `RunicPlatform::Contracts` (generated C++); Go package under `<module path>/go/generated/` (module path is the placeholder `runic.local/platform`, see Contract-session items) |
+| Depends on | Nothing inside the Platform; the Protobuf compiler and runtime, and gRPC code generation for service APIs |
+| Status | Not started (`proto/README.md` placeholder only) |
+
+When PCT-1 starts, this file's content moves into `proto/ARCHITECTURE.md` with the section list from [../system/02-module-contract.md](../system/02-module-contract.md), and this file then links to it.
 
 ## Purpose
 
-Versioned protocol and service schemas shared across processes.
+Give every Platform and Game process one definition of the messages they exchange off the realtime connection: service APIs, published facts and the connect-ticket format, versioned and generated for C++ and Go. Games add their own messages in their own repository on the same tooling (ARCH § Repositories, build targets and processes — Platform modules).
+
+Contracts never carry per-tick traffic. `Runic::Network` encodes every message on the realtime connection, envelope included: inputs, snapshots, deltas and simulation-link messages (ARCH § Networking: stack, sessions and responsiveness).
 
 ## Owns
 
-- Identity and message IDs.
-- Realtime packet schemas.
-- Service Protobuf schemas.
-- Event schemas (wire form of facts).
-- Transfer and control contracts.
+- Service APIs of the Platform core services and building blocks: accounts and connect tickets, World Coordinator, world directives, instance allocation, chat and party groups, admission, item ledger, currency wallets.
+- Fact messages published over NATS (published facts and world directives).
+- The connect-ticket format: issued by the accounts service (PCS-1), verified inside the simulation by Transport (PTR-2).
+- The generic durable-operation shape the services bridge carries: an operation with a stable operation ID, and an accepted result.
+- Plain ID fields on the wire: GlobalEntityId, GlobalPlayerId (CORE-1; issued by PCS-1), SimulationId, TickId, AuthorityEpoch.
+- Code generation for C++ and Go, wired into CMake and the Go build, and the rule that generated code is never edited by hand.
+- Schema versioning and compatibility rules.
 
 ## Does not own
 
-Game policy; persistence implementation; transport implementation.
-RunicGame-specific payload schemas live in RunicGame and travel through Platform
-mechanisms.
+| Responsibility | Owner |
+| --- | --- |
+| Every realtime message, envelope included: inputs, bit-packed and quantized snapshots, deltas, ghost deltas, transfer messages | Engine `Runic::Network` |
+| The Engine's plain ID and time types themselves | Engine `Runic::Core` (CORE-1) |
+| Game messages and game service APIs | RunicGame (on the same tooling) |
+| Sending, receiving, retrying | Transport (realtime bytes), ServerBindings and GoSDK (services) |
+| Any game rule, value or name | RunicGame |
 
-## Allowed dependencies
+## Depends on / never depends on
 
-None inside Platform — Contracts is the **foundation** for every Platform module
-and for RunicGame service/client bindings. Schema tooling (e.g. protoc) only.
+| May depend on | Never depends on |
+| --- | --- |
+| `protoc`, the Protobuf runtime and the gRPC generator plugins (versions pinned in PCT-1) | Any other Platform module |
+| — | RunicEngine code or headers |
+| — | RunicGame messages, names or content |
 
-## Forbidden dependencies
+Transport, ServerBindings, GoSDK and, through the SDK, CoreServices and BuildingBlocks depend on Contracts.
 
-Any other Platform module, RunicEngine implementation code, RunicGame.
+## Rules
 
-## Primary consumers
+- Do: put stable, global IDs in schemas. Local Flecs entity IDs never appear in a schema; use GlobalEntityId, GlobalPlayerId and the other plain ID types.
+- Do: give every durable request an operation ID so retries are safe.
+- Do: keep every message generic. Tests and examples use neutral names (`engine:test_ability`, `game:<something>` only as a format example).
+- Do: version every schema; changes stay backward compatible within a major version.
+- Never: edit generated code; never commit it into the handwritten source folders.
+- Never: define a game message here. Games add theirs in their own repository.
+- Never: define a realtime or per-tick message (input, snapshot, delta, simulation-link message or their envelope); `Runic::Network` encodes those.
 
-Platform modules, RunicEngine bindings (NetworkAdapter integration), RunicGame
-server/client integrations.
+## Interfaces it implements or exposes (sketch)
 
-## Public surface (conceptual)
+Illustrative only; PCT-1's contract session fixes the real files and names.
 
 ```text
-Contracts/
-├── api_or_pkg/     # schema sources and generated public packages
-├── internal/
-├── tests/
-└── build/deploy metadata as appropriate
+proto/
+├── runic/platform/operations/v1/operation.proto  # durable operation, operation ID, result status
+├── runic/platform/ids/v1/ids.proto               # GlobalEntityId, GlobalPlayerId, SimulationId, TickId, AuthorityEpoch
+├── runic/platform/tickets/v1/connect_ticket.proto # connect-ticket format (PCS-1 issues, PTR-2 verifies)
+├── runic/platform/accounts/v1/accounts.proto     # login, entitlements (PCS-1)
+├── runic/platform/coordinator/v1/coordinator.proto
+├── runic/platform/directives/v1/directives.proto
+├── runic/platform/ledger/v1/ledger.proto
+├── runic/platform/wallets/v1/wallets.proto
+└── ARCHITECTURE.md
 ```
 
-Message classes the schemas must cover [J.7.2]:
+```protobuf
+// Illustrative, not a frozen schema.
+message OperationId { uint64 simulation_id = 1; uint64 sequence = 2; }
 
-| Class | Examples |
+message DurableOperation {
+  OperationId id = 1;
+  string kind = 2;                      // namespaced, e.g. "engine:test_operation"
+  google.protobuf.Any payload = 3;      // the game defines its payloads in its own repository
+}
+```
+
+| Message family | Carried by |
 | --- | --- |
-| Command / Intent | MoveInput, UseSkill, Interact |
-| Event / Fact | EntityKilled, DamageApplied (wire form) |
-| State / Replication | Transform, velocity, HP, ghost delta, snapshot delta |
-| Request / Reply | ConsumeItem, LoadCharacter, CommitTrade, ValidateSession |
-| Transfer / Snapshot | PlayerTransferSnapshot, region bootstrap, recovery snapshot |
-| Control | AssignPartition, DrainSimulation, AuthorityCommit, connection-role changes |
+| Requests that need an answer | gRPC, through ServerBindings (PBND-1) and GoSDK (PSDK-1) |
+| Published facts and world directives, no answer | NATS, through ServerBindings (PBND-4) and GoSDK (PSDK-3) |
+| Connect ticket | Issued over gRPC by PCS-1; presented by the client first on the realtime connection and verified by Transport (PTR-2) |
 
-The examples above name game-flavored messages to illustrate the classes; only
-generic infrastructure messages are defined here.
+## Work packages
 
-## Data ownership (derived)
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369.
 
-- Schemas carry `GlobalEntityId`/`GlobalPlayerId`, never local Flecs IDs.
-- Every schema is versioned; evolution is backward compatible within a major
-  version.
-- Generated code is never hand-edited and stays in the git-ignored
-  `*/generated/` folders.
+| ID | Package | Done when | Needs | Slice |
+| --- | --- | --- | --- | --- |
+| PCT-1 | Protobuf service APIs, fact messages and the connect-ticket format; C++ and Go code generation | Both languages round-trip the same message | BUILD-1 | 12 |
 
-## Integration points (derived)
+Later packages (Transport, ServerBindings, GoSDK, CoreServices, BuildingBlocks) add the service APIs they need inside this module's folder as part of their own contract sessions, or as a follow-up Contracts package; each such change is reviewed as a Contracts change.
 
-Realtime serializes these schemas; ServiceRuntime exposes service schemas over
-gRPC/NATS; Engine NetworkAdapter maps simulation data to/from them through the
-binding decided in [OQ-1](../system/11-open-questions.md#oq-1).
+## Acceptance tests
 
-## Acceptance tests (Stage A, derived)
+| Package | Test | Passes when |
+| --- | --- | --- |
+| PCT-1 | Cross-language round trip | A message encoded in C++ decodes in Go to the same values, and the reverse |
+| PCT-1 | Build integration | The CMake build generates the C++ code and `go build ./...` builds the Go code, with no hand-edited generated file |
+| PCT-1 | ID check | No schema field holds a local entity ID; IDs use the plain ID messages |
+| PCT-1 | Scope review | No schema defines a realtime or per-tick message |
+| PCT-1 | Neutrality review | No game name, rule or value appears in a schema or test |
 
-- [ ] Schemas generate C++ and Go bindings in the build.
-- [ ] Round-trip encode/decode tests in both languages, including cross-language.
-- [ ] Each message has a stable ID and version.
-- [ ] Review check: no game-specific types or rules in Platform schemas.
+## Contract-session items
 
-## Open questions
-
-- Schema technology for realtime packets (Protobuf vs. a custom compact format)
-  is not decided; Appendix J names Protobuf for **service** schemas.
-- [OQ-1](../system/11-open-questions.md#oq-1), [OQ-2](../system/11-open-questions.md#oq-2).
+- OQ-9 (still open): the canonical Go module path, `runic.local/platform` (placeholder) or `github.com/PedroVicente98/RunicPlatform`. Generated Go import paths depend on it. See [../system/11-open-questions.md](../system/11-open-questions.md).
+- `.gitignore` excludes `go/generated/`, but Go consumers that fetch the module cannot run `protoc`. PCT-1 decides whether generated Go code is committed (and where) or produced by a documented step.
+- How the Protobuf and gRPC toolchains are acquired for CMake (system package or fetched) is decided in PCT-1, within the dependency rules of BUILD-1.
