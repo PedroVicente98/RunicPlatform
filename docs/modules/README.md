@@ -54,7 +54,7 @@ The layout keeps the folders the repository already has (`cpp/`, `go/`, `proto/`
 | 43. Tides, waves and weather | A tide opens a path; a storm reaches two simulations at the same world time | PCS-3 | ENV-4, ENV-5 (Engine); GWTH-1 (defined in RunicGame) |
 | 44+. Expansion | Defined when the expansion slices are planned (includes separate worlds and world transitions, busy-area partitions, placement by traffic and local links) | PTR-4, PCS-4, PCS-5, PCS-6, PCS-7, PBB-3 | Engine and RunicGame packages (for example DSIM-5, NET-8) |
 
-Slice 0 (BUILD-1) also writes in this repository: the module helper, presets, CI, the test framework, the headless and forbidden-dependency checks, the x86-64-v3 CPU baseline, and the CI use of the Engine submodule pin (the pin itself already exists at `external/RunicEngine`). See [../system/12-work-packages.md](../system/12-work-packages.md) for every package and [../system/08-implementation-roadmap.md](../system/08-implementation-roadmap.md) for the roadmap.
+Slice 0 (BUILD-1, [contract](../build/BUILD-1.md)) also writes in this repository: the module helper, presets, CI, the test framework, the headless and forbidden-dependency checks, the x86-64-v3 CPU baseline, and the CI use of the Engine submodule pin (the pin itself already exists at `external/RunicEngine`). See [../system/12-work-packages.md](../system/12-work-packages.md) for every package and [../system/08-implementation-roadmap.md](../system/08-implementation-roadmap.md) for the roadmap.
 
 ## Rules for using this catalog
 

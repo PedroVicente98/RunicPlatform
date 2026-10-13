@@ -76,7 +76,7 @@ Work packages are taken in roadmap order; each one is a single session and pull 
 
 | Order | Slice | Packages | Needs before starting |
 | --- | --- | --- | --- |
-| 0 | 0. Build skeleton | BUILD-1 (all three repositories; this repository's part: module helper, presets, CI, test framework, checks, CPU baseline, CI use of the Engine pin) | — |
+| 0 | 0. Build skeleton | BUILD-1, contract in review ([build/BUILD-1.md](build/BUILD-1.md)) (all three repositories; this repository's part: module helper, presets, CI, test framework, checks, CPU baseline, CI use of the Engine pin) | — |
 | 1 | 12. Transport | PCT-1 (Contracts) | BUILD-1 |
 | 2 | 12. Transport | PTR-1 (Transport) | NET-1 (Engine), PCT-1 |
 | 3 | 12. Transport | PTR-2 (Transport) | PTR-1 |

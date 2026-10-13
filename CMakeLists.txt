@@ -38,4 +38,9 @@ if(RUNIC_PLATFORM_BUILD_TESTS)
     target_link_libraries(runic_platform_smoke PRIVATE Runic::Platform)
     set_target_properties(runic_platform_smoke PROPERTIES CXX_EXTENSIONS OFF)
     add_test(NAME runic_platform.bootstrap COMMAND runic_platform_smoke)
+
+    # BUILD-1 acceptance tests (contract: docs/build/BUILD-1.md). They fail until BUILD-1 is implemented.
+    if(PROJECT_IS_TOP_LEVEL AND NOT RUNIC_BUILD_TESTS_NESTED)
+        add_subdirectory(tests/build)
+    endif()
 endif()

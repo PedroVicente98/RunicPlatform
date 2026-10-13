@@ -32,6 +32,7 @@ Open questions are in [system/11-open-questions.md](system/11-open-questions.md)
 | `architecture.md` | RunicPlatform structure, dependency direction, paths, server layers, tickets, monitoring, Go services, repository wiring | This repository |
 | `current-state.md` | What exists, gaps against v3, owner actions, next packages | This repository |
 | `modules/` | One contract per Platform module (7) and the catalog | This repository |
+| `build/` | This repository's part of the build packages: [BUILD-1](build/BUILD-1.md) (build skeleton, in review) | This repository |
 
 ## Rules for every session
 
