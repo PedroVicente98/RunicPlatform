@@ -2,7 +2,7 @@
 
 This file records what exists in the repository today, how far it is from Technical Architecture v3, and what comes next.
 
-Updated 2026-10-11, on branch `docs/v3-regeneration`, when the docs were brought up to ARCH (Technical Architecture v3) revision 369 (an intermediate update reached revision 306 the same day). They were first regenerated from revision 263 on 2026-10-09. Update this file in the same pull request as any code that changes it.
+Updated 2026-10-13, on branch `docs/v3-regeneration`, when the docs were brought up to ARCH (Technical Architecture v3) revision 502 (worlds and world transitions, simulation links by locality, placement by load and traffic, directives with a duration). Before that they reached revision 369 on 2026-10-11 (with an intermediate update to revision 306 the same day). They were first regenerated from revision 263 on 2026-10-09. Update this file in the same pull request as any code that changes it.
 
 ## Owner action required: repository visibility
 
@@ -29,7 +29,7 @@ Bootstrap only. The repository proves that a C++ library and a Go module build. 
 | Schemas | `proto/README.md` placeholder; no `.proto` file and no code generation. `.gitignore` already reserves `proto/generated/`, `cpp/generated/` and `go/generated/`. |
 | Engine pin (added in this change) | `.gitmodules` entry `external/RunicEngine` → `https://github.com/PedroVicente98/RunicEngine.git`, gitlink at RunicEngine `fb84529a58e827a10ee2bf1517e6005429db814a` (RunicEngine `main` on 2026-10-09). The submodule is not checked out by default; run `git submodule update --init external/RunicEngine` to fetch it. |
 | `RUNIC_ENGINE_DIR` (added in this change) | CMake cache path, defined only when no Engine target exists yet (so a RunicGame superproject is never affected). Default: `external/RunicEngine` when it has a `CMakeLists.txt`, otherwise `../RunicEngine`. Nothing uses it yet; the Engine is not added to the build. |
-| Docs | `docs/` regenerated from ARCH v3 on this branch and updated to revision 369: [architecture.md](architecture.md), [modules/README.md](modules/README.md) and seven module contracts. `docs/system/` is shared with the other two repositories; this repository's copy is replaced by the coordinator and is not edited here. |
+| Docs | `docs/` regenerated from ARCH v3 on this branch and updated to revision 502: [architecture.md](architecture.md), [modules/README.md](modules/README.md) and seven module contracts. `docs/system/` is shared with the other two repositories; this repository's copy is replaced by the coordinator and is not edited here. |
 | License | MIT (`LICENSE`). See the owner action above. |
 
 ## Gaps against v3
@@ -86,4 +86,4 @@ Work packages are taken in roadmap order; each one is a single session and pull 
 
 PCT-1 can run alongside the Engine's NET-1, and PINF-1 can start at any time. Before PCT-1, the owner should settle OQ-9 (canonical Go module path), because generated Go import paths depend on it. PTR-1 also needs the Engine pin moved to a commit that has `Runic::NetworkTransport` (NET-1); moving the pin is its own reviewed change.
 
-After slice 26, the Platform packages follow the roadmap: PCS-1 and PBND-1 (slice 27; PBND-1 needs PCT-1, APP-1 and SIM-5), PBB-1 (28), PSDK-3 and PBND-4 (30), PCS-2 and PTR-3 (36), PBND-2, PBND-3 and PINF-2 (39), PBB-2 (33a), PCS-3 (43), then PCS-4, PCS-5, PCS-6 and PBB-3 (44+).
+After slice 26, the Platform packages follow the roadmap: PCS-1 and PBND-1 (slice 27; PBND-1 needs PCT-1, APP-1 and SIM-5), PBB-1 (28), PSDK-3 and PBND-4 (30), PCS-2 and PTR-3 (36), PBND-2, PBND-3 and PINF-2 (39), PBB-2 (33a), PCS-3 (43), then PTR-4, PCS-4, PCS-5, PCS-6, PCS-7 and PBB-3 (44+).

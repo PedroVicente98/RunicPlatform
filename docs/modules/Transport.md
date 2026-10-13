@@ -14,7 +14,7 @@ When the first contract session creates `cpp/Transport/`, this file's content mo
 
 ## Purpose
 
-Carry bytes between processes on the realtime path. Clients talk directly to their simulation, and neighbor simulations talk directly to each other, through the Engine's transport interface. This module is the Platform's implementation of that interface on GameNetworkingSockets: reliable and unreliable messages, encryption and congestion control over UDP (ARCH § Networking: stack, sessions and responsiveness).
+Carry bytes between processes on the realtime path. Clients talk directly to their simulation, and neighbor simulations talk directly to each other over the cheapest channel for where they run, through the Engine's transport interface. This module is the Platform's implementation of that interface on GameNetworkingSockets: reliable and unreliable messages, encryption and congestion control over UDP (ARCH § Networking: stack, sessions and responsiveness).
 
 ## Owns
 
@@ -24,6 +24,7 @@ Carry bytes between processes on the realtime path. Clients talk directly to the
 - Connect-ticket verification inside the simulation process (PTR-2): signature, expiry and key ID, checked locally against a configured set of public keys, with no service call. Until PCS-1 issues real tickets (slice 27), tickets are test-signed with a local key (from slice 12); PCS-1 then signs with rotating keys whose public halves the simulations load.
 - The connection set behind one WorldSession (PTR-3): one authoritative connection plus up to three candidate connections near borders, promotion with no loading screen, and the connection roles Primary, WarmCandidate, Dormant and Retiring.
 - Simulation-to-simulation links (PTR-3) that carry the ghost deltas and transfer messages the Engine encodes.
+- Link channels chosen by locality (PTR-4): an in-memory queue when both simulations run in one process, a local socket or shared-memory channel on one machine, GameNetworkingSockets between machines. The link picks its channel from the peers' placement, and DistributedSimulation semantics never change with the channel.
 - Per-connection statistics (bytes, loss, round-trip time) reported through the Engine transport interface, so the Engine's Diagnostics layer can record them in the Core metrics registry (proposal; the NET-1 contract decides the shape).
 
 ## Does not own
@@ -34,6 +35,7 @@ Carry bytes between processes on the realtime path. Clients talk directly to the
 | Ingress and egress queues, the Network layer, interest, priority budgets, prediction and reconciliation | Engine `Runic::Network` |
 | Authority state, epochs, ghost state, transfer protocol, foreign interactions | Engine `Runic::DistributedSimulation` |
 | Which simulations are handoff candidates for a border | Platform CoreServices (World Coordinator, PCS-2) |
+| Where simulations run (placement by load and traffic) | Platform CoreServices (World Coordinator, PCS-7) |
 | Issuing connect tickets and rotating their signing keys; accounts; entitlements | Platform CoreServices (PCS-1) |
 | The connect-ticket format and service message definitions | Platform Contracts (PCT-1) |
 | Game messages and any game rule | RunicGame |
@@ -61,6 +63,7 @@ The dependency points one way: Transport includes Engine interface headers; the 
 - Never: wrap or re-encode realtime messages; `Runic::Network` encodes them, envelope included, and Transport carries the bytes.
 - Never: let a GameNetworkingSockets type appear in a public header.
 - Never: let gameplay code see addresses; the WorldSession stays the same while connections change.
+- Never: let a link's channel change what crosses it; the same bytes, ordering and delivery classes on every channel.
 
 ## Interfaces it implements or exposes (sketch)
 
@@ -103,13 +106,14 @@ Control operations on the connection set (PTR-3): prepare, wake, promote, sleep,
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369. Each package is one Claude Code session and one pull request inside `cpp/Transport/`.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside `cpp/Transport/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
 | PTR-1 | GameNetworkingSockets transport implementing the Engine transport interface | A client and a local server exchange reliable and unreliable messages | NET-1, PCT-1 | 12 |
 | PTR-2 | Connect-ticket verification inside the simulation (signature, expiry, key ID) against a configured set of public keys; tickets are test-signed with a local key until PCS-1 issues real ones | Bad or expired tickets are rejected with no service call | PTR-1 | 12 |
 | PTR-3 | Candidate connections (up to three), promotion, simulation-to-simulation links | Promotion happens with no loading screen | PTR-2, DSIM-3 | 36 |
+| PTR-4 | Simulation links chosen by locality: an in-memory queue in one process, a local socket or shared-memory channel on one machine, GameNetworkingSockets between machines | The same transfer test passes on every channel with identical results; the link picks its channel from the peers' placement | PTR-3 | 44+ |
 
 ## Acceptance tests
 
@@ -124,6 +128,7 @@ Copied from ARCH § Modules, work packages and the implementation contract (Plat
 | PTR-2 | Key set | A ticket signed with any key in the configured set is accepted; a key removed from the set no longer verifies |
 | PTR-3 | Promotion | A WorldSession promotes a candidate to Primary and drops the others with no loading screen |
 | PTR-3 | Simulation links | Ghost deltas and transfer messages encoded by the Engine cross a simulation-to-simulation link; a message with a stale epoch is dropped by the Engine, not by Transport |
+| PTR-4 | Links by locality | The same transfer test passes over the in-memory, local and network channels with identical results; the link picks its channel from the peers' placement |
 
 ## Contract-session items
 

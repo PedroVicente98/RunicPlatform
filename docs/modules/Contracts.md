@@ -94,7 +94,7 @@ message DurableOperation {
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 502.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |

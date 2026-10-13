@@ -72,15 +72,17 @@ infra/
 
 | Placement rule (ARCH § Platform and operations: simulation placement) | Mechanism |
 | --- | --- |
-| One region per simulation pod by default; quiet neighbors may share a pod | Fleet configuration |
+| One region per simulation pod by default; quiet neighbors may share a pod, and several simulations may share one process | Fleet configuration |
 | Grow in place | Kubernetes in-place pod resize; the simulation picks up the new worker count at a safe point |
 | Move to a bigger machine | The World Coordinator starts a new pod and hands the region off; Kubernetes never moves a running process |
+| Busy areas | A busy area such as a city gets its own simulation through an Engine AuthorityPartition (DSIM-5), placed like any other simulation |
+| Placement by load and traffic | The World Coordinator (PCS-7) scores nodes by load, memory and inter-simulation traffic and moves high-traffic pairs onto one node by move-by-handoff, up to a per-node cap; node sizes and caps are fleet configuration |
 | Instances | Agones-allocated game servers from fleets |
 | Regional datacenters | One Kubernetes cluster with Agones per datacenter; accounts are global |
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369. Each package is one Claude Code session and one pull request inside `infra/`.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside `infra/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
