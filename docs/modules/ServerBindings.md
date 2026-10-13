@@ -1,3 +1,16 @@
+---
+# obsidian-graph: generated tags and aliases
+tags:
+  - repo/platform
+  - source/arch
+  - type/module
+  - lang/cpp
+  - slice/27
+aliases:
+  - "RunicPlatform::ServerBindings"
+  - "Server bindings"
+---
+
 # ServerBindings
 
 This file is the contract of the Platform ServerBindings module: the C++ layers a GameServer composes to reach durable services, Agones and Prometheus without the Engine knowing any of them.
@@ -7,44 +20,44 @@ This file is the contract of the Platform ServerBindings module: the C++ layers 
 | Language | C++20 |
 | Directory | `cpp/ServerBindings/` with `Public/`, `Source/`, `Tests/`, `ARCHITECTURE.md`, `CMakeLists.txt` |
 | CMake target | `RunicPlatform::ServerBindings` (namespace `RunicPlatform::ServerBindings`) |
-| Depends on | Engine interface targets only: `Runic::Application` (Layer), `Runic::SimulationPort` (header-only service port from Simulation, SIM-5; Core types only) and `Runic::Core` (metrics registry); Platform Contracts; gRPC, NATS client, Agones SDK and Prometheus client libraries (all private) |
+| Depends on | Engine interface targets only: `Runic::Application`[^engine-application] (Layer), `Runic::SimulationPort`[^engine-simulation] (header-only service port from Simulation, SIM-5; Core types only) and `Runic::Core`[^engine-core] (metrics registry); Platform Contracts[^platform-contracts]; gRPC, NATS client, Agones SDK and Prometheus client libraries (all private) |
 | Status | Not started |
 
 When the first contract session creates `cpp/ServerBindings/`, this file's content moves into `cpp/ServerBindings/ARCHITECTURE.md` with the section list from [../system/02-module-contract.md](../system/02-module-contract.md), and this file then links to it.
 
 ## Purpose
 
-Only the Platform may talk to gRPC, NATS and Agones; the Engine never supplies infrastructure or communication layers (ARCH § Application and LayerStack). This module supplies the server-side pieces that do, as classes that implement Engine interfaces:
+Only the Platform may talk to gRPC, NATS and Agones; the Engine never supplies infrastructure or communication layers (ARCH[^arch] § Application and LayerStack). This module supplies the server-side pieces that do, as classes that implement Engine interfaces:
 
 | Piece | Implements | Package |
 | --- | --- | --- |
-| ServicesBridgeLayer | The Engine Layer interface and the Simulation's service port (SIM-5): asynchronous gRPC calls, then NATS | PBND-1 (gRPC, slice 27), PBND-4 (NATS, slice 30) |
+| ServicesBridgeLayer | The Engine Layer interface and the Simulation's service port (SIM-5[^engine-simulation]): asynchronous gRPC calls, then NATS | PBND-1 (gRPC, slice 27), PBND-4 (NATS, slice 30) |
 | LifecycleLayer | The Engine Layer interface, on the Agones SDK, with a local stub mode for development without Agones | PBND-2 |
-| Prometheus exporter | Publishes the Core metrics registry (CORE-2): tick-domain timings, and the network and replication metrics the Engine Diagnostics layer (NET-7) records | PBND-3 |
+| Prometheus exporter | Publishes the Core metrics registry (CORE-2[^engine-core]): tick-domain timings, and the network and replication metrics the Engine Diagnostics layer (NET-7[^engine-network]) records | PBND-3 |
 
 The GameServer (RunicGame) composes its stack bottom to top: Network (Engine) → Simulation (Engine) → Services bridge (this module) → Lifecycle (this module) → Diagnostics (Engine).
 
 ## Owns
 
 - ServicesBridgeLayer, gRPC part (PBND-1): drains the service port's outbox of durable operations (each with a stable operation ID), sends calls that need an answer asynchronously over gRPC, and queues completions into the port's inbox, which the simulation drains at safe ticks.
-- ServicesBridgeLayer, NATS part (PBND-4): publishes durable facts from the outbox, and delivers world directives (PCS-3) and other subscriptions to the inbox at safe ticks.
+- ServicesBridgeLayer, NATS part (PBND-4): publishes durable facts from the outbox, and delivers world directives[^platform-coreservices] (PCS-3) and other subscriptions to the inbox at safe ticks.
 - The bridge's I/O threads, gRPC channels, NATS connections, retry with the same operation ID, and timeouts.
 - LifecycleLayer (PBND-2): Agones SDK Ready, health pings and shutdown; the server states Starting → Ready → Draining → Shutdown as seen by Agones; and a local stub mode, so a GameServer runs in development with no Agones.
-- The Prometheus exporter (PBND-3): publishes the Core metrics registry and is the only metrics endpoint of a production GameServer (ARCH § Decisions log: development endpoints).
+- The Prometheus exporter (PBND-3): publishes the Core metrics registry and is the only metrics endpoint of a production GameServer (ARCH[^arch] § Decisions log: development endpoints).
 - Bridge, lifecycle and exporter metrics of their own (queue depths, call latency, failures).
 
 ## Does not own
 
 | Responsibility | Owner |
 | --- | --- |
-| The service port interface, the outbox and inbox semantics, and when results are applied | Engine `Runic::Simulation` (SIM-5) |
-| The Layer interface and LayerStack | Engine `Runic::Application` (APP-1) |
-| Recording metrics: tick-domain timings (Engine Simulation, SIM-1) and network and replication metrics (Engine Diagnostics layer, NET-7) | Engine |
+| The service port interface, the outbox and inbox semantics, and when results are applied | Engine `Runic::Simulation`[^engine-simulation] (SIM-5) |
+| The Layer interface and LayerStack | Engine `Runic::Application`[^engine-application] (APP-1) |
+| Recording metrics: tick-domain timings (Engine Simulation, SIM-1) and network and replication metrics (Engine Diagnostics layer, NET-7[^engine-network]) | Engine |
 | The Editor attach channel and debug-shape stream | Engine Diagnostics layer in `Runic::Network` (NET-7) |
-| The metrics registry | Engine `Runic::Core` (CORE-2) |
-| What a world directive says and when | Platform CoreServices (PCS-3) and the RunicGame service that decides it |
-| Region hand-off decisions during draining | Platform CoreServices (World Coordinator) and the Engine DistributedSimulation |
-| Fleets, manifests, dashboards | Platform Infrastructure |
+| The metrics registry | Engine `Runic::Core`[^engine-core] (CORE-2) |
+| What a world directive says and when | Platform CoreServices[^platform-coreservices] (PCS-3) and the RunicGame service that decides it |
+| Region hand-off decisions during draining | Platform CoreServices (World Coordinator) and the Engine DistributedSimulation[^engine-distributedsimulation] |
+| Fleets, manifests, dashboards | Platform Infrastructure[^platform-infrastructure] |
 | What an operation means, its validation and its rules | The receiving service (RunicGame or Platform) |
 | Which layers a server composes, in which order | RunicGame (GameServer) |
 
@@ -52,8 +65,8 @@ The GameServer (RunicGame) composes its stack bottom to top: Network (Engine) �
 
 | May depend on | Never depends on |
 | --- | --- |
-| Engine interface targets `Runic::Application` (Layer), `Runic::SimulationPort` (service port), `Runic::Core` (metrics registry) | `Runic::Simulation`, `Runic::Network` or any other Engine module target; any Engine `Source/` folder; Flecs, Jolt or any Engine library type |
-| Platform Contracts | RunicGame, in code, tests or docs |
+| Engine interface targets `Runic::Application`[^engine-application] (Layer), `Runic::SimulationPort`[^engine-simulation] (service port), `Runic::Core`[^engine-core] (metrics registry) | `Runic::Simulation`, `Runic::Network`[^engine-network] or any other Engine module target; any Engine `Source/` folder; Flecs, Jolt or any Engine library type |
+| Platform Contracts[^platform-contracts] | RunicGame, in code, tests or docs |
 | gRPC, a NATS client, the Agones SDK, a Prometheus client: all PRIVATE, never in `Public/` | GLFW, bgfx, RmlUi, ImGui, audio or editor code (server-only, headless) |
 | — | Platform Go code |
 
@@ -71,7 +84,7 @@ The dependency points one way: these layers include Engine interface headers; th
 
 ## Interfaces it implements or exposes (sketch)
 
-Illustrative only; the Engine contracts of APP-1, SIM-5 (`Runic::SimulationPort`) and CORE-2 define the interfaces these classes implement.
+Illustrative only; the Engine contracts of APP-1[^engine-application], SIM-5[^engine-simulation] (`Runic::SimulationPort`) and CORE-2[^engine-core] define the interfaces these classes implement.
 
 ```cpp
 // cpp/ServerBindings/Public/ServicesBridgeLayer.hpp — illustrative, not a frozen API.
@@ -116,14 +129,14 @@ applied at a later safe tick
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside `cpp/ServerBindings/`.
+Copied from ARCH[^arch] § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside `cpp/ServerBindings/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
-| PBND-1 | ServicesBridgeLayer: implements the Engine service port with asynchronous gRPC calls; completions queued for safe ticks | A slow service never delays a tick | PCT-1, APP-1, SIM-5 | 27 |
+| PBND-1 | ServicesBridgeLayer: implements the Engine service port with asynchronous gRPC calls; completions queued for safe ticks | A slow service never delays a tick | PCT-1[^platform-contracts], APP-1[^engine-application], SIM-5[^engine-simulation] | 27 |
 | PBND-2 | LifecycleLayer: Agones SDK ready, health and shutdown, plus a local stub mode for development without Agones | Against the Agones local SDK server the layer reports Ready, sends health pings and drains on shutdown; the stub mode runs with no Agones | APP-1 | 39 |
-| PBND-3 | Prometheus exporter that publishes the Core metrics registry (tick-domain timings, and the network metrics the Diagnostics layer records) | A scrape returns time per tick domain in Prometheus format | CORE-2, SIM-1 | 39 |
-| PBND-4 | NATS in the services bridge: durable facts published from the outbox; world directives and other subscriptions delivered to the inbox at safe ticks | A fact published from a tick reaches a test subscriber once; a slow broker never delays a tick | PBND-1, PSDK-3 | 30 |
+| PBND-3 | Prometheus exporter that publishes the Core metrics registry (tick-domain timings, and the network metrics the Diagnostics layer records) | A scrape returns time per tick domain in Prometheus format | CORE-2[^engine-core], SIM-1 | 39 |
+| PBND-4 | NATS in the services bridge: durable facts published from the outbox; world directives[^platform-coreservices] and other subscriptions delivered to the inbox at safe ticks | A fact published from a tick reaches a test subscriber once; a slow broker never delays a tick | PBND-1, PSDK-3[^platform-gosdk] | 30 |
 
 PBND-4 is listed last because ARCH numbers it last; it is built in slice 30, before PBND-2 and PBND-3 (slice 39).
 
@@ -131,11 +144,11 @@ PBND-4 is listed last because ARCH numbers it last; it is built in slice 30, bef
 
 | Package | Test | Passes when |
 | --- | --- | --- |
-| PBND-1 | Slow service | A test gRPC service (generated from Contracts, PCT-1) that answers late never delays a tick; the result is applied at a later safe tick |
+| PBND-1 | Slow service | A test gRPC service (generated from Contracts[^platform-contracts], PCT-1) that answers late never delays a tick; the result is applied at a later safe tick |
 | PBND-1 | No I/O on the tick | Completions arrive only through the port's inbox; no callback touches Flecs |
 | PBND-1 | Retry | A timed-out operation is resent with the same operation ID and the service applies it once |
 | PBND-1 | Headless | The module builds and links with no graphics, UI, audio or editor library |
-| PBND-1 | Standalone build | The module configures against the pinned Engine with only `Runic::Core`, `Runic::Application` and `Runic::SimulationPort`; Flecs, Jolt and the gameplay modules are not configured |
+| PBND-1 | Standalone build | The module configures against the pinned Engine with only `Runic::Core`[^engine-core], `Runic::Application`[^engine-application] and `Runic::SimulationPort`[^engine-simulation]; Flecs, Jolt and the gameplay modules are not configured |
 | PBND-4 | Publish once | A fact published from a tick reaches a test subscriber once |
 | PBND-4 | Slow broker | A slow or unavailable NATS broker never delays a tick |
 | PBND-4 | Subscription | A subscribed message (for example a test directive) reaches the inbox and is applied at a later safe tick, never from the NATS callback |
@@ -143,9 +156,34 @@ PBND-4 is listed last because ARCH numbers it last; it is built in slice 30, bef
 | PBND-2 | Stub mode | With the local stub mode the server starts, runs and shuts down with no Agones |
 | PBND-3 | Export | A scrape returns time per tick domain from the Core metrics registry in Prometheus format |
 
-The fleet and Grafana checks are not ServerBindings tests: PINF-2 proves them once PBND-2 and PBND-3 are merged.
+The fleet and Grafana checks are not ServerBindings tests: PINF-2[^platform-infrastructure] proves them once PBND-2 and PBND-3 are merged.
 
 ## Contract-session items
 
-- The service port interface comes from the Engine SIM-5 contract (`Runic::SimulationPort`); PBND-1 waits for it. The Engine commit pinned today does not provide that target yet ([../current-state.md](../current-state.md)).
-- The gRPC, NATS, Agones SDK and Prometheus client libraries and how they are acquired are chosen in the contract sessions of PBND-1, PBND-4, PBND-2 and PBND-3, within the dependency rules of BUILD-1.
+- The service port interface comes from the Engine SIM-5[^engine-simulation] contract (`Runic::SimulationPort`); PBND-1 waits for it. The Engine commit pinned today does not provide that target yet ([../current-state.md](../current-state.md)).
+- The gRPC, NATS, Agones SDK and Prometheus client libraries and how they are acquired are chosen in the contract sessions of PBND-1, PBND-4, PBND-2 and PBND-3, within the dependency rules of BUILD-1[^doc-build-build-1].
+
+<!-- obsidian-graph:start -->
+
+---
+
+## Connections
+
+*Generated for the Obsidian graph. The numbered markers in the text jump to the footnotes below, which link the notes they refer to.*
+
+- **Depends on:** [[../../../RunicEngine/docs/modules/Core|Core]] · [[../../../RunicEngine/docs/modules/Application|Application]] · [[../../../RunicEngine/docs/modules/Simulation|Simulation]] · [[../modules/Contracts|Contracts]]
+- **Its packages need:** [[../modules/GoSDK|GoSDK]]
+- **Packages that need it:** [[../modules/CoreServices|CoreServices]] · [[../modules/Infrastructure|Infrastructure]] · [[../../../RunicGame/docs/game-packages|Game work packages]]
+- **See also:** [[../modules/README|Platform module catalog]] · [[../../../RunicEngine/docs/system/03-dependency-rules|03 — Dependency rules]] · [[../../../RunicEngine/docs/system/12-work-packages|12 — Work packages]] · [[../current-state|Platform current state]]
+
+[^engine-application]: [[../../../RunicEngine/docs/modules/Application|Application]] — Engine module · Foundation
+[^engine-simulation]: [[../../../RunicEngine/docs/modules/Simulation|Simulation]] — Engine module · Simulation core
+[^engine-core]: [[../../../RunicEngine/docs/modules/Core|Core]] — Engine module · Foundation
+[^platform-contracts]: [[../modules/Contracts|Contracts]] — Platform module · Protobuf
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^engine-network]: [[../../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
+[^platform-coreservices]: [[../modules/CoreServices|CoreServices]] — Platform module · Go
+[^engine-distributedsimulation]: [[../../../RunicEngine/docs/modules/DistributedSimulation|DistributedSimulation]] — Engine module · Networking
+[^platform-infrastructure]: [[../modules/Infrastructure|Infrastructure]] — Platform module · configuration
+[^platform-gosdk]: [[../modules/GoSDK|GoSDK]] — Platform module · Go
+[^doc-build-build-1]: [[../build/BUILD-1|Platform BUILD-1 contract]] — RunicPlatform doc

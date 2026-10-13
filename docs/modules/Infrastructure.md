@@ -1,3 +1,15 @@
+---
+# obsidian-graph: generated tags and aliases
+tags:
+  - repo/platform
+  - source/arch
+  - type/module
+  - lang/config
+  - slice/26
+aliases:
+  - "Platform Infrastructure"
+---
+
 # Infrastructure
 
 This file is the contract of the Platform Infrastructure module: the local development stack, Agones fleets, Kubernetes manifests, and the Prometheus and Grafana monitoring setup.
@@ -7,20 +19,20 @@ This file is the contract of the Platform Infrastructure module: the local devel
 | Language | Configuration and scripts (container compose files, Kubernetes and Agones manifests, Prometheus configuration, Grafana dashboards as JSON) |
 | Directory | `infra/` (new; proposal): `infra/local/` (PINF-1), `infra/agones/`, `infra/kubernetes/`, `infra/monitoring/` (PINF-2) |
 | CMake target or Go package | None; no build target |
-| Depends on | Nothing at build time. At runtime it starts PostgreSQL and NATS (PINF-1), and deploys GameServer fleets with the LifecycleLayer (PBND-2) and the exporter (PBND-3) (PINF-2) |
+| Depends on | Nothing at build time. At runtime it starts PostgreSQL and NATS (PINF-1), and deploys GameServer fleets with the LifecycleLayer[^platform-serverbindings] (PBND-2) and the exporter (PBND-3) (PINF-2) |
 | Status | Not started |
 
 When PINF-1 starts, this file's content moves into `infra/ARCHITECTURE.md` with the section list from [../system/02-module-contract.md](../system/02-module-contract.md), and this file then links to it.
 
 ## Purpose
 
-Run everything the Platform and the Game need outside the simulation: locally with one command, and in a cluster with Agones and Kubernetes, watched from one Grafana panel (ARCH § Platform and operations).
+Run everything the Platform and the Game need outside the simulation: locally with one command, and in a cluster with Agones and Kubernetes, watched from one Grafana panel (ARCH[^arch] § Platform and operations).
 
 ## Owns
 
-- The local development stack: PostgreSQL and NATS started by one command (PINF-1). Gameplay work never needs Kubernetes: a developer runs GameServer directly, without a lifecycle layer or with the LifecycleLayer's local stub mode (PBND-2), and, only when a feature needs them, local NATS and Go services.
+- The local development stack: PostgreSQL and NATS started by one command (PINF-1). Gameplay work never needs Kubernetes: a developer runs GameServer directly, without a lifecycle layer or with the LifecycleLayer[^platform-serverbindings]'s local stub mode (PBND-2), and, only when a feature needs them, local NATS and Go services.
 - Agones fleets for GameServer: one region per simulation pod by default; pods request whole vCPUs (PINF-2).
-- Kubernetes manifests for Platform services and building blocks, and the deployment pattern Game services reuse (PINF-2).
+- Kubernetes manifests for Platform services and building blocks[^platform-buildingblocks], and the deployment pattern Game services reuse (PINF-2).
 - Prometheus scraping of the GameServer exporters (PBND-3), the Go services (through the SDK) and Agones (PINF-2).
 - Grafana as the single operations panel: Platform dashboards (time per clock domain and system, tick backlog, players, entities, bandwidth per client, handoffs, ghosts; Agones fleets, allocations and game-server states), with logs joining the same panel (PINF-2).
 
@@ -28,12 +40,12 @@ Run everything the Platform and the Game need outside the simulation: locally wi
 
 | Responsibility | Owner |
 | --- | --- |
-| Recording simulation metrics | Every GameServer, in the Core metrics registry (CORE-2); the Engine Diagnostics layer (NET-7) adds network and replication metrics |
-| Exporting simulation metrics | Platform ServerBindings (PBND-3 publishes the Core registry) |
+| Recording simulation metrics | Every GameServer, in the Core metrics registry (CORE-2[^engine-core]); the Engine Diagnostics layer (NET-7[^engine-network]) adds network and replication metrics |
+| Exporting simulation metrics | Platform ServerBindings[^platform-serverbindings] (PBND-3 publishes the Core registry) |
 | Agones SDK calls inside the server | Platform ServerBindings (PBND-2) |
-| Placement decisions (which region runs where, when to move or resize) | Platform CoreServices (World Coordinator) |
+| Placement decisions (which region runs where, when to move or resize) | Platform CoreServices[^platform-coreservices] (World Coordinator) |
 | Dashboards for game metrics | RunicGame |
-| Live inspection of a running server | Engine Editor attach (development and staging only) |
+| Live inspection of a running server | Engine Editor[^engine-editor] attach (development and staging only) |
 
 ## Depends on / never depends on
 
@@ -70,36 +82,58 @@ infra/
 └── ARCHITECTURE.md
 ```
 
-| Placement rule (ARCH § Platform and operations: simulation placement) | Mechanism |
+| Placement rule (ARCH[^arch] § Platform and operations: simulation placement) | Mechanism |
 | --- | --- |
 | One region per simulation pod by default; quiet neighbors may share a pod, and several simulations may share one process | Fleet configuration |
 | Grow in place | Kubernetes in-place pod resize; the simulation picks up the new worker count at a safe point |
-| Move to a bigger machine | The World Coordinator starts a new pod and hands the region off; Kubernetes never moves a running process |
-| Busy areas | A busy area such as a city gets its own simulation through an Engine AuthorityPartition (DSIM-5), placed like any other simulation |
+| Move to a bigger machine | The World Coordinator[^platform-coreservices] starts a new pod and hands the region off; Kubernetes never moves a running process |
+| Busy areas | A busy area such as a city gets its own simulation through an Engine AuthorityPartition (DSIM-5[^engine-distributedsimulation]), placed like any other simulation |
 | Placement by load and traffic | The World Coordinator (PCS-7) scores nodes by load, memory and inter-simulation traffic and moves high-traffic pairs onto one node by move-by-handoff, up to a per-node cap; node sizes and caps are fleet configuration |
 | Instances | Agones-allocated game servers from fleets |
 | Regional datacenters | One Kubernetes cluster with Agones per datacenter; accounts are global |
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside `infra/`.
+Copied from ARCH[^arch] § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside `infra/`.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |
 | PINF-1 | Local development stack (PostgreSQL, NATS) started by one command | The stack starts and the service tests pass against it | — | 26 |
-| PINF-2 | Agones fleets, Kubernetes manifests, Prometheus and Grafana dashboards | A fleet runs in a development cluster, servers report Ready, and Grafana shows time per tick domain | PBND-2, PBND-3 | 39 |
+| PINF-2 | Agones fleets, Kubernetes manifests, Prometheus and Grafana dashboards | A fleet runs in a development cluster, servers report Ready, and Grafana shows time per tick domain | PBND-2[^platform-serverbindings], PBND-3 | 39 |
 
 ## Acceptance tests
 
 | Package | Test | Passes when |
 | --- | --- | --- |
-| PINF-1 | One command | The stack starts with one command and the PSDK-2 service tests pass against it |
+| PINF-1 | One command | The stack starts with one command and the PSDK-2[^platform-gosdk] service tests pass against it |
 | PINF-1 | Teardown | The stack stops and leaves nothing running |
-| PINF-2 | Fleet | A GameServer fleet runs in a development cluster; servers report Ready (through PBND-2) and drain cleanly |
+| PINF-2 | Fleet | A GameServer fleet runs in a development cluster; servers report Ready (through PBND-2[^platform-serverbindings]) and drain cleanly |
 | PINF-2 | Panel | Grafana shows time per tick domain, Go service metrics and Agones fleet state on one panel (slice 39) |
 
 ## Contract-session items
 
 - The container tool for the local stack (for example Docker Compose or Podman) is chosen in PINF-1.
-- Where container images for Platform services are built and published is not specified in ARCH.
+- Where container images for Platform services are built and published is not specified in ARCH[^arch].
 - Log collection ("logs join the same panel") names no tool in ARCH; PINF-2 proposes one.
+
+<!-- obsidian-graph:start -->
+
+---
+
+## Connections
+
+*Generated for the Obsidian graph. The numbered markers in the text jump to the footnotes below, which link the notes they refer to.*
+
+- **Its packages need:** [[../modules/ServerBindings|ServerBindings]]
+- **Packages that need it:** [[../modules/CoreServices|CoreServices]]
+- **See also:** [[../modules/README|Platform module catalog]] · [[../../../RunicEngine/docs/system/03-dependency-rules|03 — Dependency rules]] · [[../../../RunicEngine/docs/system/12-work-packages|12 — Work packages]] · [[../current-state|Platform current state]]
+
+[^platform-serverbindings]: [[../modules/ServerBindings|ServerBindings]] — Platform module · C++
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^platform-buildingblocks]: [[../modules/BuildingBlocks|BuildingBlocks]] — Platform module · Go
+[^engine-core]: [[../../../RunicEngine/docs/modules/Core|Core]] — Engine module · Foundation
+[^engine-network]: [[../../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
+[^platform-coreservices]: [[../modules/CoreServices|CoreServices]] — Platform module · Go
+[^engine-editor]: [[../../../RunicEngine/docs/modules/Editor|Editor]] — Engine module · Tools
+[^engine-distributedsimulation]: [[../../../RunicEngine/docs/modules/DistributedSimulation|DistributedSimulation]] — Engine module · Networking
+[^platform-gosdk]: [[../modules/GoSDK|GoSDK]] — Platform module · Go
