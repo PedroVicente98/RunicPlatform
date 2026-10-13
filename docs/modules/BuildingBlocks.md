@@ -80,7 +80,7 @@ service CurrencyWallets {
 
 ## Work packages
 
-Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 369. Each package is one Claude Code session and one pull request inside its block directory.
+Copied from ARCH § Modules, work packages and the implementation contract (Platform), revision 502. Each package is one Claude Code session and one pull request inside its block directory.
 
 | ID | Package | Done when | Needs | Slice |
 | --- | --- | --- | --- | --- |

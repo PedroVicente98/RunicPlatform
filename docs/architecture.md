@@ -2,7 +2,7 @@
 
 This file explains how RunicPlatform is organized, how it connects to RunicEngine and RunicGame, and the rules every Platform change must keep.
 
-Source: ARCH (RunicEngine — Technical Architecture v3, revision 369), mainly § Repositories, build targets and processes, § Modules, work packages and the implementation contract, § Networking: stack, sessions and responsiveness, § Networking: replication, interest and handoff, and § Platform and operations. When this file and ARCH disagree, ARCH wins.
+Source: ARCH (RunicEngine — Technical Architecture v3, revision 502), mainly § Repositories, build targets and processes, § Modules, work packages and the implementation contract, § Networking: stack, sessions and responsiveness, § Networking: replication, interest and handoff, and § Platform and operations. When this file and ARCH disagree, ARCH wins.
 
 ## Scope: mechanisms, never policy
 
@@ -14,7 +14,7 @@ The Platform supplies the services every MMORPG needs, an SDK for building more,
 | Protobuf service APIs, published facts and the connect-ticket format | Authority semantics, epochs, transfer (Engine `Runic::DistributedSimulation`) |
 | C++ server bindings: services bridge, lifecycle, metrics exporter | Which layers a server composes (RunicGame) |
 | Go SDK: skeleton, gRPC, NATS, PostgreSQL, transactions, idempotency | Characters, inventory rules, quest progress, economy, trade, guilds, mail, housing, durable water state and every other game rule or game-owned state (RunicGame services, stored through the Go SDK) |
-| Core services: accounts and `GlobalPlayerId` issue, entitlements, connect tickets, World Coordinator (including the world epoch), instances, world directives, chat and party groups, admission | Game messages, game data, game dashboards (RunicGame) |
+| Core services: accounts and `GlobalPlayerId` issue, entitlements, connect tickets, World Coordinator (worlds, the world epoch and placement by load and traffic), instances, world directives with a duration, chat and party groups, admission | Game messages, game data, game dashboards (RunicGame) |
 | Building blocks: item ledger and currency wallets, including one-transaction item and currency transfers; mechanisms only | What an item or a currency means |
 | Infrastructure: local stack, Agones, Kubernetes, Prometheus, Grafana | Live inspection of a server (Engine Editor attach, development and staging builds only) |
 
@@ -22,11 +22,11 @@ The Platform supplies the services every MMORPG needs, an SDK for building more,
 
 | Module | Language | Packages | Contract |
 | --- | --- | --- | --- |
-| Transport | C++ | PTR-1 to PTR-3 | [modules/Transport.md](modules/Transport.md) |
+| Transport | C++ | PTR-1 to PTR-4 | [modules/Transport.md](modules/Transport.md) |
 | Contracts | Protobuf → C++ and Go | PCT-1 | [modules/Contracts.md](modules/Contracts.md) |
 | ServerBindings | C++ | PBND-1 to PBND-4 | [modules/ServerBindings.md](modules/ServerBindings.md) |
 | GoSDK | Go | PSDK-1 to PSDK-3 | [modules/GoSDK.md](modules/GoSDK.md) |
-| CoreServices | Go | PCS-1 to PCS-6 | [modules/CoreServices.md](modules/CoreServices.md) |
+| CoreServices | Go | PCS-1 to PCS-7 | [modules/CoreServices.md](modules/CoreServices.md) |
 | BuildingBlocks | Go | PBB-1 to PBB-3 | [modules/BuildingBlocks.md](modules/BuildingBlocks.md) |
 | Infrastructure | Configuration | PINF-1, PINF-2 | [modules/Infrastructure.md](modules/Infrastructure.md) |
 
@@ -68,6 +68,7 @@ Arrows point from a part to what it builds on. Nothing points from the Engine to
 ```text
 REALTIME PATH  (per tick, direct, broker-free)
   client ◄──Transport──► authoritative simulation ◄──Transport──► neighbor simulation
+                                                    (in-memory, local or network link, by locality)
 
 SERVICE PATH   (asynchronous, durable, idempotent)
   simulation ──service port──► ServicesBridgeLayer ──gRPC / NATS──► Go service ──► PostgreSQL
@@ -78,13 +79,13 @@ CONTROL PATH   (operations)
   LifecycleLayer ──► Agones SDK (Ready, health, shutdown)
 ```
 
-- The realtime path is direct and broker-free. No NATS, gRPC, database or Agones on per-tick replication, ghost or combat traffic. Simulation-to-simulation traffic uses GameNetworkingSockets directly.
+- The realtime path is direct and broker-free. No NATS, gRPC, database or Agones on per-tick replication, ghost or combat traffic. Simulation-to-simulation traffic uses the cheapest direct channel for where the peers run: an in-memory queue in one process, a local socket or shared memory on one machine, GameNetworkingSockets between machines (PTR-4); DistributedSimulation semantics do not change with the channel.
 - `Runic::Network` encodes every message on the realtime connection, envelope included. Protobuf (Contracts) carries only service APIs, published facts and the connect-ticket format, never per-tick traffic.
 - Nothing the Platform does blocks a simulation tick. Network I/O and service clients run on their own threads and only enqueue.
 
 | Piece | Used for |
 | --- | --- |
-| GameNetworkingSockets (Transport) | Real-time UDP, client ↔ simulation and simulation ↔ simulation: reliable and unreliable messages, encryption, congestion control |
+| GameNetworkingSockets (Transport) | Real-time UDP, client ↔ simulation and simulation ↔ simulation between machines: reliable and unreliable messages, encryption, congestion control |
 | Engine encoding (`Runic::Network`) | Every realtime message, envelope included; high-frequency payloads bit-packed and quantized |
 | Protobuf (Contracts) | Service APIs, published facts and the connect-ticket format; never per-tick traffic |
 | gRPC (GoSDK PSDK-1, ServicesBridgeLayer PBND-1) | Calls that need an answer, for example loading a character or allocating an instance |
@@ -120,6 +121,7 @@ In the other direction, NATS subscriptions (PBND-4) deliver world directives (PC
 2. The client opens a transport connection directly to the simulation and presents the ticket first.
 3. The simulation checks the ticket locally (signature, expiry and key ID, against a configured set of public keys) through Transport's verifier (PTR-2), with no service call in the hot path.
 4. The WorldSession survives handoffs: one authoritative connection plus up to three candidate connections near borders (PTR-3). Connection roles are Primary, WarmCandidate, Dormant and Retiring; gameplay code never reasons about addresses.
+5. Worlds never share a border. Moving to another world (a separate map, an instance) is a world transition (Engine NET-8): the source simulation checkpoints the character through the service port, PCS-1 issues a ticket for the destination simulation, and the client connects there while it loads.
 
 Tickets are test-signed with a local key from slice 12 (PTR-2) until the accounts service (PCS-1, slice 27) issues real ones, signed with rotating keys whose public halves the simulations load. The ticket format is a Contracts message (PCT-1). PCS-1 also issues each player's `GlobalPlayerId`, the plain player ID type in Engine Core (CORE-1).
 
@@ -160,15 +162,17 @@ Game services that hold items or currencies call the item ledger (PBB-1) and wal
 | --- | --- |
 | The world epoch world time counts from | World Coordinator (PCS-2, slice 36); until then the Engine Environment clock (ENV-1, slice 25) reads it from configuration |
 | Deciding a world-wide override, for example a storm | A RunicGame service |
-| World directives with an effective world time | Platform CoreServices (PCS-3, slice 43) |
+| World directives with an effective world time and a duration (weather, wind and current events) | Platform CoreServices (PCS-3, slice 43) |
 | Delivering directives to every simulation owning the affected regions | ServicesBridgeLayer NATS subscriptions (PBND-4), applied at a safe tick |
-| Applying an override at its effective time | Engine `Runic::Environment` |
+| Applying an override at its effective time and returning to the baseline when it ends | Engine `Runic::Environment` |
 
 ## Operations
 
 - One region per simulation pod by default; quiet neighbors may share a pod.
 - Pods request whole vCPUs; the simulation sizes its worker pool from them and can grow in place (Kubernetes in-place resize).
 - Moving to a bigger machine is a handoff: the World Coordinator starts a new pod, transfers the region and retires the old one.
+- A busy area such as a city can get its own simulation through an Engine AuthorityPartition (DSIM-5), using the same border handoff; a partition never cuts an indivisible volume.
+- Placement by load and traffic (PCS-7): the World Coordinator places simulations by load, memory and inter-simulation traffic, with distance from the regions' global coordinates, and moves pairs that exchange much traffic onto one node by move-by-handoff, up to a per-node cap. Their link then uses the cheaper local channel (PTR-4).
 - A new open-world simulation is never allocated inside a handoff's critical path.
 - Worlds are hosted in regional datacenters, each with its own Kubernetes cluster and Agones; accounts are global.
 - Gameplay work never needs Kubernetes: run GameServer directly, without a lifecycle layer or with the LifecycleLayer's local stub mode (PBND-2), and, only when needed, the local stack (PINF-1).
