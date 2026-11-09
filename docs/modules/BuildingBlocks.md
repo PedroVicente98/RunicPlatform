@@ -134,7 +134,7 @@ Copied from ARCH[^arch] § Modules, work packages and the implementation contrac
 [^oq-9]: [[../system/11-open-questions#OQ-9 — Platform naming: canonical Go module path|OQ-9]] — open question or decision
 [^platform-gosdk]: [[../modules/GoSDK|GoSDK]] — Platform module · Go
 [^platform-contracts]: [[../modules/Contracts|Contracts]] — Platform module · Protobuf
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^engine-gameplay]: [[../../../RunicEngine/docs/modules/Gameplay|Gameplay]] — Engine module · GameplayAPI
 [^platform-coreservices]: [[../modules/CoreServices|CoreServices]] — Platform module · Go
 [^platform-serverbindings]: [[../modules/ServerBindings|ServerBindings]] — Platform module · C++

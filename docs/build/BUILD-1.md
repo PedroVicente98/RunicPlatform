@@ -14,14 +14,14 @@ This file is RunicPlatform's part of the BUILD-1 contract. The canonical contrac
 | --- | --- |
 | Package | BUILD-1 (slice 0), Stage A |
 | Needs | RunicEngine's BUILD-1 merged first (this repository uses its helpers through the Engine pin) |
-| Status | **Contract — awaiting owner review.** The acceptance tests in `tests/build/` exist and fail |
+| Status | **Implemented, awaiting owner review** (branch `slice-0/build-skeleton`). Every test below passes locally against the sibling `../RunicEngine` (its branch `slice-0/build-skeleton`); CI has not run on GitHub yet, and the Engine pin moves after the Engine's BUILD-1 merges |
 
 ## What BUILD-1 delivers here
 
 | Item | Rule |
 | --- | --- |
 | Engine pin | `external/RunicEngine` moves to the merge commit of RunicEngine's BUILD-1. `RUNIC_ENGINE_DIR` keeps today's behavior (submodule when populated, else `../RunicEngine`; a superproject that already added the Engine wins) |
-| Engine in the build | The Platform now adds the Engine with `add_subdirectory`, with `RUNIC_ENGINE_BUNDLES=OFF`, `RUNIC_ENGINE_BUILD_TESTS=OFF`, `RUNIC_ENGINE_BUILD_TOOLS=OFF`, `RUNIC_BUILD_SANDBOX=OFF` and presentation off. The standalone build therefore configures the helpers (and, from CORE-1[^engine-core], `Runic::Core`) and never Flecs, GLM, Jolt or a presentation library ([03 § Platform modules](../system/03-dependency-rules.md#platform-modules)) |
+| Engine in the build | The Platform now adds the Engine with `add_subdirectory`, with `RUNIC_ENGINE_BUNDLES=OFF`, `RUNIC_ENGINE_BUILD_TESTS=OFF`, `RUNIC_ENGINE_BUILD_TOOLS=OFF`, `RUNIC_BUILD_SANDBOX=OFF` and presentation off. The standalone build therefore configures the helpers (and, from CORE-1[^engine-core], `Runic::Core`) and never Flecs, GLM, Jolt or Godot ([03 § Platform modules](../system/03-dependency-rules.md#platform-modules)) |
 | Catalog | [`cmake/RunicPlatformCatalog.cmake`](../../cmake/RunicPlatformCatalog.cmake): Contracts[^platform-contracts], Transport[^platform-transport] and ServerBindings[^platform-serverbindings] with the Engine interface targets each may link. Written in this contract for review |
 | Modules | `RUNIC_MODULE_NAMESPACE RunicPlatform`; each C++ module is created by its first package (PCT-1, PTR-1, PBND-1) with `runic_add_module`, under `cpp/<Module>/` ([modules/README.md](../modules/README.md#directory-layout)) |
 | Bootstrap target | `Runic::Platform` (`cpp/Core/Version.cpp`) stays until RunicGame stops linking it; its smoke test becomes the GoogleTest test `PlatformBootstrap.Version` |
@@ -46,13 +46,14 @@ This file is RunicPlatform's part of the BUILD-1 contract. The canonical contrac
 
 | Test | Passes when |
 | --- | --- |
-| `build.platform_standalone` | This repository configures on its own, the Engine helpers run (`RUNIC: link checks passed`), and no Flecs, GLM, Jolt, GLFW, bgfx or ImGui build folder exists |
+| `build.platform_standalone` | This repository configures on its own, the Engine helpers run (`RUNIC: link checks passed`), and no Flecs, GLM, Jolt, godot-cpp or Godot build folder exists |
 | `build.platform_bootstrap_gtest` | With tests on, the build passes and CTest discovers and passes `PlatformBootstrap.Version` |
 | `checks.catalog_sync` | `cmake/RunicPlatformCatalog.cmake` equals the C++ rows of the Platform tables in `docs/system/03-dependency-rules.md`[^doc-system-03-dependency-rules] |
 | `checks.public_header_scan` | No library type (GameNetworkingSockets, gRPC, NATS, Agones SDK, Prometheus client, Protobuf) appears in any `Public/` header |
 | `checks.source_include_scan` | No file includes another module's `Source/` |
+| `checks.workflow_pins` | Every Action in `.github/workflows/` is pinned to a full commit SHA (BUILD-1 security requirement) |
 
-Plus the `go` CI job passing on today's Go code.
+Plus the `go` CI job passing on today's Go code: `go vet`, `go build`, `go test` and `govulncheck` (pinned v1.9.0; "No vulnerabilities found" locally).
 
 ## Owner actions
 

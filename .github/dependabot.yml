@@ -1,0 +1,13 @@
+# Update bot without auto-merge (BUILD-1 security requirement): pull requests only; the owner approves each.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

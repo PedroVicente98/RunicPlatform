@@ -1,0 +1,21 @@
+# DocsCheck rules for RunicPlatform (passed with -DRULES): a C++ module change under cpp/<Module>/ needs
+# cpp/<Module>/ARCHITECTURE.md, or docs/modules/<Module>.md while the folder has none; a Go change under
+# go/<package>/ needs go/<package>/ARCHITECTURE.md, or docs/modules/<package>.md.
+function(runic_docs_rule path out_module out_contracts)
+    set(module "")
+    set(contracts "")
+    if(path MATCHES "^(cpp|go)/([A-Za-z0-9_]+)/")
+        set(module "${CMAKE_MATCH_2}")
+        set(folder "${CMAKE_MATCH_1}/${CMAKE_MATCH_2}")
+        if(NOT module STREQUAL "include")
+            list(APPEND contracts "${folder}/ARCHITECTURE.md")
+            if(NOT EXISTS "${ROOT}/${folder}/ARCHITECTURE.md")
+                list(APPEND contracts "docs/modules/${module}.md")
+            endif()
+        else()
+            set(module "")
+        endif()
+    endif()
+    set(${out_module} "${module}" PARENT_SCOPE)
+    set(${out_contracts} "${contracts}" PARENT_SCOPE)
+endfunction()

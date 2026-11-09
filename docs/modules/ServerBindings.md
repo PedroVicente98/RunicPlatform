@@ -180,7 +180,7 @@ The fleet and Grafana checks are not ServerBindings tests: PINF-2[^platform-infr
 [^engine-simulation]: [[../../../RunicEngine/docs/modules/Simulation|Simulation]] — Engine module · Simulation core
 [^engine-core]: [[../../../RunicEngine/docs/modules/Core|Core]] — Engine module · Foundation
 [^platform-contracts]: [[../modules/Contracts|Contracts]] — Platform module · Protobuf
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^engine-network]: [[../../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
 [^platform-coreservices]: [[../modules/CoreServices|CoreServices]] — Platform module · Go
 [^engine-distributedsimulation]: [[../../../RunicEngine/docs/modules/DistributedSimulation|DistributedSimulation]] — Engine module · Networking

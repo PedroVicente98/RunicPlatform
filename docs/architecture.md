@@ -238,7 +238,7 @@ go build ./... && go test ./...
 
 - **See also:** [[../docs/README|Platform docs README]] · [[../../RunicEngine/docs/system/README|System README]]
 
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^engine-network]: [[../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
 [^engine-distributedsimulation]: [[../../RunicEngine/docs/modules/DistributedSimulation|DistributedSimulation]] — Engine module · Networking
 [^platform-serverbindings]: [[../docs/modules/ServerBindings|ServerBindings]] — Platform module · C++

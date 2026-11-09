@@ -83,7 +83,7 @@ Slice 0 (BUILD-1[^doc-build-build-1], [contract](../build/BUILD-1.md)) also writ
 - **Catalog:** [[../modules/Transport|Transport]] · [[../modules/Contracts|Contracts]] · [[../modules/ServerBindings|ServerBindings]] · [[../modules/GoSDK|GoSDK]] · [[../modules/CoreServices|CoreServices]] · [[../modules/BuildingBlocks|BuildingBlocks]] · [[../modules/Infrastructure|Infrastructure]]
 - **See also:** [[../README|Platform docs README]] · [[../../../RunicEngine/docs/system/README|System README]]
 
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^engine-network]: [[../../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
 [^platform-contracts]: [[../modules/Contracts|Contracts]] — Platform module · Protobuf
 [^platform-transport]: [[../modules/Transport|Transport]] — Platform module · C++

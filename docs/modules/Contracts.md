@@ -143,7 +143,7 @@ Later packages (Transport[^platform-transport], ServerBindings[^platform-serverb
 - **Its packages need:** [[../build/BUILD-1|Platform BUILD-1 contract]]
 - **See also:** [[../modules/README|Platform module catalog]] · [[../../../RunicEngine/docs/system/03-dependency-rules|03 — Dependency rules]] · [[../../../RunicEngine/docs/system/12-work-packages|12 — Work packages]] · [[../current-state|Platform current state]]
 
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^engine-network]: [[../../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
 [^platform-coreservices]: [[../modules/CoreServices|CoreServices]] — Platform module · Go
 [^platform-buildingblocks]: [[../modules/BuildingBlocks|BuildingBlocks]] — Platform module · Go

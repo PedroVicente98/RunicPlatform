@@ -144,7 +144,7 @@ Slice 26 runnable result: a Go service writes to PostgreSQL idempotently on the 
 [^platform-contracts]: [[../modules/Contracts|Contracts]] — Platform module · Protobuf
 [^platform-coreservices]: [[../modules/CoreServices|CoreServices]] — Platform module · Go
 [^platform-buildingblocks]: [[../modules/BuildingBlocks|BuildingBlocks]] — Platform module · Go
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^oq-16]: [[../system/11-open-questions#OQ-16 — Quest storage placement (decided 2026-10-09)|OQ-16]] — open question or decision
 [^platform-infrastructure]: [[../modules/Infrastructure|Infrastructure]] — Platform module · configuration
 [^platform-serverbindings]: [[../modules/ServerBindings|ServerBindings]] — Platform module · C++

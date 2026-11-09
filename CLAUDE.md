@@ -10,7 +10,9 @@ repository of a three-repository MMORPG project (C++ and Go):
   blocks (item ledger, currency wallets), infrastructure (Agones, Kubernetes, Prometheus, Grafana).
 - **RunicGame** (`../RunicGame`, proprietary) — game rules, content, executables and game services.
 
-The source of truth is ARCH (RunicEngine — Technical Architecture v3); these docs are generated from it.
+The source of truth is ARCH v4 (RunicEngine — Technical Architecture), kept in the RunicDocs vault
+(`../RunicDocs/content/Architecture/`). `docs/system/03-dependency-rules.md` and `docs/build/` follow v4; the other
+docs are still v3 and lose to RunicDocs where they disagree. The Platform never links Godot.
 
 ## Read before changing anything
 
@@ -44,7 +46,8 @@ The source of truth is ARCH (RunicEngine — Technical Architecture v3); these d
 - Local Flecs entity IDs never appear in schemas; use `GlobalEntityId`, `GlobalPlayerId` and the
   other plain ID types.
 - Library types (GameNetworkingSockets, gRPC, NATS, Agones SDK, Prometheus client) never appear in a
-  `Public/` header; C++ modules stay headless (no GLFW, bgfx, RmlUi, ImGui, audio or editor code).
+  `Public/` header; C++ modules stay headless (no libgodot, godot-cpp, GodotBridge, GodotTools, audio or editor
+  code; the Engine's configure-time headless check enforces it).
 - One work package = one module = one PR. Write only inside that module's directory, its build
   target and its docs; contract (interface and tests) approved before code; Stage A only.
 - Do not silently resolve items in `docs/system/11-open-questions.md`; ask.
@@ -52,8 +55,10 @@ The source of truth is ARCH (RunicEngine — Technical Architecture v3); these d
 ## Build
 
 ```sh
-# C++ (standalone; RUNIC_ENGINE_DIR defaults to external/RunicEngine, else ../RunicEngine)
+# C++ (standalone; RUNIC_ENGINE_DIR defaults to external/RunicEngine, else ../RunicEngine). The Engine is added
+# with its bundles, tests, tools and Godot off: only its helpers (runic_add_module, checks, GoogleTest).
 cmake --preset debug && cmake --build --preset debug && ctest --preset debug
+cmake --preset debug-siblings && cmake --build --preset debug-siblings   # always ../RunicEngine
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build && ctest --test-dir build --output-on-failure
 
 # Engine submodule (only when a package needs Engine headers)
@@ -70,5 +75,5 @@ go build ./... && go test ./...
 - `docs/system/` is mirrored in all three repositories; edit all copies together.
 - The docs carry generated Obsidian links: frontmatter tags, `[^…]` markers after names, and the
   `## Connections` footer. Never edit them by hand; after any docs change, run
-  `python3 RunicEngine/tools/docs/obsidian_graph.py RunicEngine RunicPlatform RunicGame --write` from the
+  `python3 RunicEngine/scripts/docs/obsidian_graph.py RunicEngine RunicPlatform RunicGame --write` from the
   folder that holds the three repositories (sibling checkouts).

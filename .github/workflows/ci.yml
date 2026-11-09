@@ -1,0 +1,70 @@
+# RunicPlatform CI (BUILD-1, slice 0). Contract: docs/build/BUILD-1.md.
+# Security (BUILD-1): Actions pinned to full commit SHAs, read-only token, credentials not persisted, no
+# secrets (the Engine submodule is public), govulncheck on the Go code.
+# The C++ jobs build against the pinned Engine submodule, which must point at a RunicEngine commit with the
+# BUILD-1 helpers: move external/RunicEngine to the Engine's BUILD-1 merge commit before merging here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cpp:
+    name: cpp-${{ matrix.compiler }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned RunicEngine (without its Godot submodules, since the Platform never links Godot)
+        run: git submodule update --init external/RunicEngine
+      - name: Tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Configure (warnings as errors)
+        run: cmake --preset ci-${{ matrix.compiler }}
+      - name: Build
+        run: cmake --build --preset ci-${{ matrix.compiler }}
+      - name: Test (bootstrap test, standalone build test, checks)
+        run: ctest --preset ci-${{ matrix.compiler }}
+
+  docs:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: git submodule update --init external/RunicEngine
+      - name: A module change carries its contract and docs/current-state.md
+        run: |
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" > changed.txt
+          cmake -DCHANGED=changed.txt -DROOT=. -DRULES=cmake/checks/DocsRules.cmake -P external/RunicEngine/cmake/checks/DocsCheck.cmake
+
+  go:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go test ./...
+      - name: govulncheck (pinned)
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...

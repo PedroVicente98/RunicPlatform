@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Platform: configure (debug)",
+      "type": "process",
+      "command": "cmake",
+      "args": ["--preset", "debug"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Platform: build (debug)",
+      "type": "process",
+      "command": "cmake",
+      "args": ["--build", "--preset", "debug"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": "Platform: configure (debug)",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Platform: test (debug)",
+      "detail": "PlatformBootstrap.Version, the standalone build test (no Flecs, GLM, Jolt or Godot), the scans",
+      "type": "process",
+      "command": "ctest",
+      "args": ["--preset", "debug"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "dependsOn": "Platform: build (debug)",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Platform: Go vet, build and test",
+      "type": "shell",
+      "command": "go vet ./... && go build ./... && go test ./...",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$go"]
+    }
+  ]
+}

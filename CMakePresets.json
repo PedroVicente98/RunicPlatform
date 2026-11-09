@@ -1,35 +1,64 @@
 {
   "version": 5,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 24,
-    "patch": 0
-  },
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
   "configurePresets": [
     {
-      "name": "debug",
-      "displayName": "Debug (Ninja)",
+      "name": "base",
+      "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug",
+      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "RUNIC_PLATFORM_BUILD_TESTS": true
       }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Engine helpers from external/RunicEngine when populated, else ../RunicEngine.",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "debug-siblings",
+      "displayName": "Debug against the sibling ../RunicEngine",
+      "inherits": "debug",
+      "cacheVariables": { "RUNIC_ENGINE_DIR": "${sourceDir}/../RunicEngine" }
+    },
+    {
+      "name": "ci-gcc",
+      "displayName": "CI: GCC, warnings as errors",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "RUNIC_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "ci-clang",
+      "displayName": "CI: Clang, warnings as errors",
+      "inherits": "ci-gcc",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
     }
   ],
   "buildPresets": [
-    {
-      "name": "debug",
-      "configurePreset": "debug"
-    }
+    { "name": "debug", "configurePreset": "debug" },
+    { "name": "release", "configurePreset": "release" },
+    { "name": "debug-siblings", "configurePreset": "debug-siblings" },
+    { "name": "ci-gcc", "configurePreset": "ci-gcc" },
+    { "name": "ci-clang", "configurePreset": "ci-clang" }
   ],
   "testPresets": [
-    {
-      "name": "debug",
-      "configurePreset": "debug",
-      "output": {
-        "outputOnFailure": true
-      }
-    }
+    { "name": "debug", "configurePreset": "debug", "output": { "outputOnFailure": true } },
+    { "name": "release", "configurePreset": "release", "output": { "outputOnFailure": true } },
+    { "name": "debug-siblings", "configurePreset": "debug-siblings", "output": { "outputOnFailure": true } },
+    { "name": "ci-gcc", "configurePreset": "ci-gcc", "output": { "outputOnFailure": true } },
+    { "name": "ci-clang", "configurePreset": "ci-clang", "output": { "outputOnFailure": true } }
   ]
 }

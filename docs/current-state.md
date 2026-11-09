@@ -40,18 +40,18 @@ Bootstrap only. The repository proves that a C++ library and a Go module build. 
 | Docs | `docs/` regenerated from ARCH[^arch] v3 on this branch and updated to revision 502: [architecture.md](architecture.md), [modules/README.md](modules/README.md) and seven module contracts. `docs/system/` is shared with the other two repositories; this repository's copy is replaced by the coordinator and is not edited here. |
 | License | MIT (`LICENSE`). See the owner action above. |
 
-## Gaps against v3
+## Gaps against the architecture
 
 | Area | Today | v3 target | Reference |
 | --- | --- | --- | --- |
 | Modules | 0 of 7 | Transport[^platform-transport], Contracts[^platform-contracts], ServerBindings[^platform-serverbindings], GoSDK[^platform-gosdk], CoreServices[^platform-coreservices], BuildingBlocks[^platform-buildingblocks], Infrastructure[^platform-infrastructure] | [modules/README.md](modules/README.md) |
 | C++ targets and namespaces | One bootstrap target `Runic::Platform`, namespace `Runic::Platform` | One target per module, `RunicPlatform::<Module>`, namespace matching the module | ARCH[^arch] § Modules, work packages and the implementation contract (module contract) |
 | Module layout | `cpp/Core/`, `cpp/include/` | `cpp/<Module>/{Public,Source,Tests}` + `ARCHITECTURE.md` + `CMakeLists.txt` via `runic_add_module` | [modules/README.md](modules/README.md#directory-layout) |
-| Build skeleton | No module helper, no CI, no headless or forbidden-dependency check, no CPU baseline | BUILD-1[^doc-build-build-1]: `runic_add_module`, presets, CI, one test framework for all three repositories, automated checks, x86-64-v3 (AVX2, FMA) | ARCH § Modules, work packages and the implementation contract (Engine: foundation, BUILD-1) |
-| Test framework | Plain executable returning 0 or 1 | The C++ framework chosen in BUILD-1 (the BUILD-1 session asks the owner); Go uses `testing` | OQ-7[^oq-7] in [system/11-open-questions.md](system/11-open-questions.md) |
+| Build skeleton | **Implemented in BUILD-1[^doc-build-build-1], awaiting review** (branch `slice-0/build-skeleton`): the Engine's helpers through `RUNIC_ENGINE_DIR`, the Platform catalog, presets `debug`, `release`, `debug-siblings`, `ci-gcc`, `ci-clang`, CI (`cpp-gcc`, `cpp-clang`, `docs`, `go` with govulncheck), the x86-64-v3 baseline and warnings on `Runic::Platform` | — | ARCH § Modules, work packages and the implementation contract (Engine: foundation, BUILD-1) |
+| Test framework | **Done:** GoogleTest 1.17.0 through the Engine's `runic_enable_tests`; the bootstrap smoke test is `PlatformBootstrap.Version`; Go uses `testing` | — | Decisions log (Test framework) |
 | Engine dependency | Pinned (`external/RunicEngine`) but unused | Transport links `Runic::NetworkTransport`[^engine-network] from PTR-1; ServerBindings links `Runic::Core`[^engine-core], `Runic::Application`[^engine-application] and `Runic::SimulationPort`[^engine-simulation] from PBND-1 | [architecture.md](architecture.md#repository-wiring) |
-| Engine interface targets | The pinned Engine commit `fb84529` defines `Runic::Core` (include root only), `Runic::Runtime` and `Runic::Presentation`. Configuring it always fetches Flecs, glm and Jolt (`runic_engine_dependencies()`), so a standalone Platform build that added it today would configure Flecs and Jolt | Header-only `Runic::NetworkTransport` (NET-1, slice 12) and `Runic::SimulationPort` (SIM-5, slice 27) with Core types only, and an Engine configuration that builds only Core, Application and those two targets for the Platform. This is Engine work (BUILD-1, NET-1, SIM-5); if those contracts do not provide such a configuration, PTR-1 or PBND-1 reports it to the Engine instead of working around it | ARCH § Modules, work packages and the implementation contract (Platform) |
-| Jolt and CPU baseline | The pinned Engine fetches Jolt 5.2.0 with its SIMD paths off; the Platform links no Jolt | Jolt 5.6.0 in double precision with its AVX2 path, on an x86-64-v3 baseline, delivered by Engine BUILD-1 and PHYS-1[^engine-physics]. The Platform's part of BUILD-1 sets the x86-64-v3 baseline for its own C++ and still never links Jolt | ARCH § Decisions log (Jolt version, CPU baseline) |
+| Engine interface targets | The standalone build adds the Engine with bundles, tests, tools and Godot off, so it configures only the Engine's helpers (`build.platform_standalone` checks that no Flecs, GLM, Jolt or Godot build tree exists). The pinned submodule `external/RunicEngine` is still `fb84529`, which predates the helpers: CI needs it moved to the Engine's BUILD-1 merge commit | Header-only `Runic::NetworkTransport` (NET-1, slice 12) and `Runic::SimulationPort` (SIM-5, slice 27) with Core types only | ARCH § Modules, work packages and the implementation contract (Platform) |
+| Jolt and CPU baseline | The x86-64-v3 baseline applies to every Platform C++ target; the Platform links no Jolt | Jolt 5.6.0 in double precision is PHYS-1[^engine-physics]'s (Engine) | ARCH § Decisions log (Jolt version, CPU baseline) |
 | Contracts | `proto/` placeholder | Protobuf service APIs, published facts and the connect-ticket format with C++ and Go generation (PCT-1); never per-tick traffic | [modules/Contracts.md](modules/Contracts.md) |
 | Go module path | Placeholder `runic.local/platform` | Canonical path still open | OQ-9[^oq-9] in [system/11-open-questions.md](system/11-open-questions.md) |
 | Go toolchain | `go.mod` requires Go 1.26.0 | Every machine and CI runner needs it | — |
@@ -84,7 +84,7 @@ Work packages are taken in roadmap order; each one is a single session and pull 
 
 | Order | Slice | Packages | Needs before starting |
 | --- | --- | --- | --- |
-| 0 | 0. Build skeleton | BUILD-1[^doc-build-build-1], contract in review ([build/BUILD-1.md](build/BUILD-1.md)) (all three repositories; this repository's part: module helper, presets, CI, test framework, checks, CPU baseline, CI use of the Engine pin) | — |
+| 0 | 0. Build skeleton | BUILD-1[^doc-build-build-1], **implemented, awaiting review** ([build/BUILD-1.md](build/BUILD-1.md)); then move the Engine pin to its BUILD-1 merge commit | — |
 | 1 | 12. Transport[^platform-transport] | PCT-1[^platform-contracts] (Contracts) | BUILD-1 |
 | 2 | 12. Transport | PTR-1 (Transport) | NET-1[^engine-network] (Engine), PCT-1 |
 | 3 | 12. Transport | PTR-2 (Transport) | PTR-1 |
@@ -106,7 +106,7 @@ After slice 26, the Platform packages follow the roadmap: PCS-1[^platform-corese
 
 - **See also:** [[../docs/README|Platform docs README]] · [[../../RunicEngine/docs/system/README|System README]]
 
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^platform-transport]: [[../docs/modules/Transport|Transport]] — Platform module · C++
 [^platform-contracts]: [[../docs/modules/Contracts|Contracts]] — Platform module · Protobuf
 [^platform-serverbindings]: [[../docs/modules/ServerBindings|ServerBindings]] — Platform module · C++
@@ -115,7 +115,6 @@ After slice 26, the Platform packages follow the roadmap: PCS-1[^platform-corese
 [^platform-buildingblocks]: [[../docs/modules/BuildingBlocks|BuildingBlocks]] — Platform module · Go
 [^platform-infrastructure]: [[../docs/modules/Infrastructure|Infrastructure]] — Platform module · configuration
 [^doc-build-build-1]: [[../docs/build/BUILD-1|Platform BUILD-1 contract]] — RunicPlatform doc
-[^oq-7]: [[../docs/system/11-open-questions#OQ-7 — Test framework and test location (decided 2026-10-09)|OQ-7]] — open question or decision
 [^engine-network]: [[../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
 [^engine-core]: [[../../RunicEngine/docs/modules/Core|Core]] — Engine module · Foundation
 [^engine-application]: [[../../RunicEngine/docs/modules/Application|Application]] — Engine module · Foundation

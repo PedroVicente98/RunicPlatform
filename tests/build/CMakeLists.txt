@@ -4,7 +4,6 @@
 # Added by the Platform when RUNIC_PLATFORM_BUILD_TESTS is ON, or run on their own:
 #   cmake -S tests/build -B build/build-tests -G Ninja [-DRUNIC_ENGINE_DIR=../RunicEngine]
 #   ctest --test-dir build/build-tests
-# Until BUILD-1 is implemented in both repositories, every test fails.
 
 cmake_minimum_required(VERSION 3.24)
 get_filename_component(RUNIC_PLATFORM_SOURCE "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
@@ -26,8 +25,8 @@ set(DRIVERS "${RUNIC_BUILD_TESTS_ENGINE}/tests/build")
 set(CHECKS "${RUNIC_BUILD_TESTS_ENGINE}/cmake/checks")
 set(WORK "${CMAKE_CURRENT_BINARY_DIR}/work")
 
-# The standalone Platform build: configures the Engine helpers and never Flecs, GLM, Jolt or a
-# presentation library; the deferred link checks run.
+# The standalone Platform build: configures the Engine helpers and never Flecs, GLM, Jolt or Godot;
+# the deferred link checks run.
 add_test(NAME build.platform_standalone
     COMMAND "${CMAKE_COMMAND}"
         "-DFIXTURE=${RUNIC_PLATFORM_SOURCE}"
@@ -36,7 +35,7 @@ add_test(NAME build.platform_standalone
         "-DEXPECT=pass"
         "-DEXPECT_REGEX=RUNIC: link checks passed"
         "-DARGS=-DRUNIC_PLATFORM_BUILD_TESTS=OFF"
-        "-DABSENT=_deps/flecs-build|_deps/glm-build|_deps/jolt-build|_deps/glfw-build|_deps/runic_bgfx-build|_deps/imgui-build"
+        "-DABSENT=_deps/flecs-build|_deps/glm-build|_deps/jolt-build|godot-cpp|godot"
         "-DGENERATOR=${CMAKE_GENERATOR}"
         -P "${DRIVERS}/RunFixture.cmake")
 
@@ -69,5 +68,10 @@ add_test(NAME checks.source_include_scan
         "-DSCRIPT=${CHECKS}/SourceIncludeScan.cmake" "-DEXPECT=pass"
         "-DARGS=-DROOT=${RUNIC_PLATFORM_SOURCE}"
         -P "${DRIVERS}/RunScript.cmake")
-set_tests_properties(checks.catalog_sync checks.public_header_scan checks.source_include_scan
+add_test(NAME checks.workflow_pins
+    COMMAND "${CMAKE_COMMAND}"
+        "-DSCRIPT=${CHECKS}/WorkflowPinCheck.cmake" "-DEXPECT=pass"
+        "-DARGS=-DROOT=${RUNIC_PLATFORM_SOURCE}"
+        -P "${DRIVERS}/RunScript.cmake")
+set_tests_properties(checks.catalog_sync checks.public_header_scan checks.source_include_scan checks.workflow_pins
     PROPERTIES LABELS checks)

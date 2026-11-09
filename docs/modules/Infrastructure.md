@@ -129,7 +129,7 @@ Copied from ARCH[^arch] § Modules, work packages and the implementation contrac
 - **See also:** [[../modules/README|Platform module catalog]] · [[../../../RunicEngine/docs/system/03-dependency-rules|03 — Dependency rules]] · [[../../../RunicEngine/docs/system/12-work-packages|12 — Work packages]] · [[../current-state|Platform current state]]
 
 [^platform-serverbindings]: [[../modules/ServerBindings|ServerBindings]] — Platform module · C++
-[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture v3": the architecture source of truth (a project document, not a note in this vault)
+[^arch]: #source/arch — ARCH, "RunicEngine — Technical Architecture" (v4, in the RunicDocs vault): the architecture source of truth
 [^platform-buildingblocks]: [[../modules/BuildingBlocks|BuildingBlocks]] — Platform module · Go
 [^engine-core]: [[../../../RunicEngine/docs/modules/Core|Core]] — Engine module · Foundation
 [^engine-network]: [[../../../RunicEngine/docs/modules/Network|Network]] — Engine module · Networking
