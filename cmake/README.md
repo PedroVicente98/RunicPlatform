@@ -6,7 +6,7 @@ This file is RunicPlatform's part of the BUILD-1 and BUILD-2 contracts. The cano
 | --- | --- |
 | Package | BUILD-1 (slice 0), Stage A |
 | Needs | RunicEngine's BUILD-1 merged first (this repository uses its helpers through the Engine pin) |
-| Status | **Done** in slice 0 and committed on `main`. The Engine pin (`external/RunicEngine`) is at `b2450cf` (slice 0 with the single-source docs); BUILD-2 is on the `temp/build-2` branch for review |
+| Status | **Done** in slice 0 and committed on `main`, where the Engine pin (`external/RunicEngine`) is at `b2450cf` (slice 0 with the single-source docs). BUILD-2 is on the `temp/build-2` branch for review, where the pin is at `2013e9b` (the Engine's BUILD-2 commit) |
 
 ## What BUILD-1 delivers here
 
@@ -64,5 +64,7 @@ The canonical part is the BUILD-2 section of [RunicEngine cmake/README.md](https
 
 ## Submodule pin
 
-`external/RunicEngine` moves in its own commit once the Engine commit is on `main`: it is at `b2450cf`, and moves
-again to the Engine's BUILD-2 commit.
+`external/RunicEngine` moves in its own commit once the Engine commit is on `main`: it is at `b2450cf` on `main`. On
+the `temp/build-2` review branch it already names `2013e9b`, the Engine's BUILD-2 commit, so that branch reaches `main`
+after the Engine's, and both only by fast-forward, which keeps the pinned commit on the Engine's `main` (RunicGame
+pins this branch's commit in turn).
