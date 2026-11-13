@@ -52,8 +52,9 @@ file. The Platform never links Godot.
 - Library types (GameNetworkingSockets, gRPC, NATS, Agones SDK, Prometheus client) never appear in a
   `Public/` header; C++ modules stay headless (no libgodot, godot-cpp, GodotBridge, GodotTools, audio or editor
   code; the Engine's configure-time headless check enforces it).
-- One work package = one module = one PR. Write only inside that module's directory, its build
-  target and its docs; contract (interface and tests) approved before code; Stage A only.
+- One work package = one module. Write only inside that module's directory, its build target and its docs;
+  contract (interface and tests) approved before code; Stage A only. Packages are built in the slice pipeline
+  (RunicDocs › Building with Claude Code); a package's commits sit on the slice branch and name the package.
 - Do not silently resolve open questions (RunicDocs › Architecture › Open questions, such as the canonical Go
   module path); ask the owner.
 
@@ -76,8 +77,8 @@ go build ./... && go test ./...
 ## Docs maintenance
 
 - In the same change as the code: the module's `ARCHITECTURE.md` (its contract and package status) and its folder's
-  `README.md` when what a folder holds changes. The PR closes the package's GitHub issue; RunicDocs' Development notes
-  read the status from the issues.
+  `README.md` when what a folder holds changes. The package's GitHub issue closes when its verify step ends, and the slice
+  check merges the slice branch into `main`; RunicDocs' Development notes read the status from the issues.
 - A change to the architecture or the plan is a RunicDocs change, made there by the owner or with the owner's
   approval, never a copy here; `cmake/RunicPlatformCatalog.cmake` must equal RunicDocs' Platform modules table
   (`checks.catalog_sync`).
