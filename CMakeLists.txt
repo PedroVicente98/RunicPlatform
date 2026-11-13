@@ -8,7 +8,10 @@ option(RUNIC_PLATFORM_BUILD_TESTS "RunicPlatform tests (GoogleTest) and the BUIL
 # CI and standalone builds use the submodule pinned at external/RunicEngine; daily work points RUNIC_ENGINE_DIR at a
 # sibling checkout. A superproject that already added the Engine (RunicGame adds it first) owns Engine resolution:
 # this block then does nothing and never touches its cache. The standalone build turns the bundles, the Engine's
-# tests, its tools and Godot off, so it configures the helpers and never Flecs, GLM, Jolt or Godot.
+# tests, its tools and Godot off, and configures only the Engine modules the Platform links (RUNIC_ENGINE_MODULES:
+# none yet), so it configures the helpers and never Flecs, GLM, Jolt or Godot. The first Platform package that links
+# Runic::Core, Runic::Application or an interface target names it there; a third party those modules link (GLM for
+# Core) is then fetched by need (BUILD-2).
 get_property(_runic_engine_added GLOBAL PROPERTY RUNIC_ENGINE_SOURCE_DIR SET)
 if(NOT _runic_engine_added)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/RunicEngine/CMakeLists.txt")
@@ -30,6 +33,7 @@ if(NOT _runic_engine_added)
     set(RUNIC_ENGINE_BUILD_TOOLS OFF CACHE BOOL "No RunicEditor in the Platform")
     set(RUNIC_ENGINE_ENABLE_PRESENTATION OFF CACHE BOOL "The Platform never links Godot")
     set(RUNIC_BUILD_SANDBOX OFF CACHE BOOL "The sandbox checks the bundle")
+    set(RUNIC_ENGINE_MODULES "" CACHE STRING "The Engine modules the Platform links (none yet)")
     add_subdirectory("${RUNIC_ENGINE_DIR}" "${CMAKE_BINARY_DIR}/dependencies/engine")
 endif()
 unset(_runic_engine_added)
@@ -42,7 +46,10 @@ if(RUNIC_PLATFORM_BUILD_TESTS)
     runic_enable_tests()
 endif()
 
-# ---- C++ modules (cpp/<Module>/, each created by its first package: PCT-1, PTR-1, PBND-1) ----------------------
+# ---- C++ modules: cpp/<Module>/ and proto/ (Contracts) -------------------------------------------------------------
+# Modules from the catalog (BUILD-2): each joins the build when its first package (PCT-1, PTR-1, PBND-1) adds its
+# CMakeLists.txt; no package edits this file for it.
+runic_add_catalog_modules(ROOT cpp LAYOUT NAME FOLDERS Contracts=proto)
 
 # Bootstrap target: stays until RunicGame stops linking it. Not a module (no catalog row).
 add_library(runic_platform STATIC)

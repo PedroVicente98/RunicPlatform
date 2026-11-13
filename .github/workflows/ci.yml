@@ -2,7 +2,7 @@
 # Security (BUILD-1): Actions pinned to full commit SHAs, read-only token, credentials not persisted, no
 # secrets (the Engine submodule is public), govulncheck on the Go code.
 # The C++ jobs build against the pinned Engine submodule, which must point at a RunicEngine commit with the
-# BUILD-1 helpers: move external/RunicEngine to the Engine's BUILD-1 merge commit before merging here.
+# helpers this repository calls (BUILD-1 and BUILD-2; cmake/README.md, Submodule pin).
 name: ci
 
 on:
