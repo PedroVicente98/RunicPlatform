@@ -1,5 +1,5 @@
-# BUILD-1 acceptance tests for RunicPlatform (contract: docs/build/BUILD-1.md; canonical contract in
-# RunicEngine docs/build/BUILD-1.md). They use the drivers and check scripts of the pinned Engine.
+# BUILD-1 acceptance tests for RunicPlatform (contract: cmake/README.md; canonical contract in
+# RunicEngine cmake/README.md). They use the drivers and check scripts of the pinned Engine.
 #
 # Added by the Platform when RUNIC_PLATFORM_BUILD_TESTS is ON, or run on their own:
 #   cmake -S tests/build -B build/build-tests -G Ninja [-DRUNIC_ENGINE_DIR=../RunicEngine]
@@ -52,12 +52,10 @@ add_test(NAME build.platform_bootstrap_gtest
         -P "${DRIVERS}/RunFixture.cmake")
 set_tests_properties(build.platform_standalone build.platform_bootstrap_gtest PROPERTIES LABELS build)
 
-# The catalog equals the Platform rows of docs/system/03; the repository passes both scans.
-add_test(NAME checks.catalog_sync
-    COMMAND "${CMAKE_COMMAND}"
-        "-DSCRIPT=${CHECKS}/CatalogSync.cmake" "-DEXPECT=pass"
-        "-DARGS=-DCATALOG=${RUNIC_PLATFORM_SOURCE}/cmake/RunicPlatformCatalog.cmake|-DDOCS=${RUNIC_PLATFORM_SOURCE}/docs/system/03-dependency-rules.md|-DTABLE=platform"
-        -P "${DRIVERS}/RunScript.cmake")
+# The catalog equals the Platform modules table in RunicDocs; the repository passes both scans.
+include("${DRIVERS}/CatalogSyncTest.cmake")
+runic_add_catalog_sync_test(CATALOG "${RUNIC_PLATFORM_SOURCE}/cmake/RunicPlatformCatalog.cmake" TABLE platform
+    ROOT "${RUNIC_PLATFORM_SOURCE}")
 add_test(NAME checks.public_header_scan
     COMMAND "${CMAKE_COMMAND}"
         "-DSCRIPT=${CHECKS}/PublicHeaderScan.cmake" "-DEXPECT=pass"
@@ -73,5 +71,5 @@ add_test(NAME checks.workflow_pins
         "-DSCRIPT=${CHECKS}/WorkflowPinCheck.cmake" "-DEXPECT=pass"
         "-DARGS=-DROOT=${RUNIC_PLATFORM_SOURCE}"
         -P "${DRIVERS}/RunScript.cmake")
-set_tests_properties(checks.catalog_sync checks.public_header_scan checks.source_include_scan checks.workflow_pins
+set_tests_properties(checks.public_header_scan checks.source_include_scan checks.workflow_pins
     PROPERTIES LABELS checks)

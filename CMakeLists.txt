@@ -1,4 +1,4 @@
-# RunicPlatform. Its part of the BUILD-1 build skeleton: docs/build/BUILD-1.md (slice 0).
+# RunicPlatform. Its part of the BUILD-1 build skeleton: cmake/README.md (slice 0).
 cmake_minimum_required(VERSION 3.24)
 project(RunicPlatform VERSION 0.1.0 LANGUAGES CXX)
 
@@ -60,7 +60,7 @@ if(RUNIC_PLATFORM_BUILD_TESTS)
     runic_apply_toolchain(RunicPlatformBootstrapTests)
     gtest_discover_tests(RunicPlatformBootstrapTests DISCOVERY_MODE PRE_TEST PROPERTIES LABELS module)
 
-    # BUILD-1 acceptance tests (contract: docs/build/BUILD-1.md).
+    # BUILD-1 acceptance tests (contract: cmake/README.md).
     if(PROJECT_IS_TOP_LEVEL AND NOT RUNIC_BUILD_TESTS_NESTED)
         add_subdirectory(tests/build)
     endif()

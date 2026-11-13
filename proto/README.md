@@ -1,10 +1,8 @@
-# Future shared protocols
+# proto/ — Contracts (`RunicPlatform::Contracts`)
 
-This directory is reserved for generic infrastructure schemas once a vertical
-slice needs them. Protocol Buffers, gRPC, generated bindings, and schema tooling
-are intentionally deferred. There are no protocol definitions or code generation
-steps in the bootstrap.
+Protobuf service APIs, published fact messages and the connect-ticket format, with C++ and Go code generation (generated code in the git-ignored `cpp/generated/` and `go/generated/`); games add their own messages in their repository. Never per-tick traffic: Runic::Network encodes every realtime message.
 
-Generic coordination messages belong here; proprietary game events and their
-schemas belong in RunicGame. C++ simulations remain authoritative for realtime
-world state, with Go processes providing separate coordination and services.
+- **Filled by:** PCT-1 (slice 12)
+- **Status:** empty until PCT-1 (slice 12) starts
+
+Sources: RunicDocs › Architecture › Repositories, build targets and processes › Platform modules; Networking stack, sessions and responsiveness (as of 2026-11-13).

@@ -2,7 +2,7 @@
 
 RunicPlatform is the open-source (MIT) networking, services and infrastructure layer for MMORPGs built on RunicEngine: mechanisms any MMORPG can use, never one game's rules.
 
-> Status: bootstrap. The docs describe the target architecture; no Platform module is implemented yet. See [docs/current-state.md](docs/current-state.md).
+> Status: slice 0 (build skeleton) done; no Platform module is implemented yet. The folders of every module already exist with a README (`cpp/`, `proto/`, `go/`, `infra/`).
 
 ## What it provides
 
@@ -57,7 +57,10 @@ go test ./...
 
 ## Documentation
 
-Start at [docs/README.md](docs/README.md). Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
+The architecture, the roadmap and the status of every package are in the RunicDocs vault
+([pedrovicente98.github.io/RunicDocs](https://pedrovicente98.github.io/RunicDocs/)); this repository keeps no copy.
+Next to the code: the READMEs of `cpp/`, `proto/`, `go/` and `infra/`, each module's `ARCHITECTURE.md`, and
+[cmake/README.md](cmake/README.md) for the build. Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
 
 ## License
 

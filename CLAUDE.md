@@ -11,17 +11,21 @@ repository of a three-repository MMORPG project (C++ and Go):
 - **RunicGame** (`../RunicGame`, proprietary) — game rules, content, executables and game services.
 
 The source of truth is ARCH v4 (RunicEngine — Technical Architecture), kept in the RunicDocs vault
-(`../RunicDocs/content/Architecture/`). `docs/system/03-dependency-rules.md` and `docs/build/` follow v4; the other
-docs are still v3 and lose to RunicDocs where they disagree. The Platform never links Godot.
+(`../RunicDocs/content/Architecture/`). RunicDocs is the only place the architecture and the development plan are
+written: this repository keeps no copy of them (decided 2026-11-12). RunicDocs is edited on GitHub, so run
+`git -C ../RunicDocs pull` before reading it; the local clone can lag. When RunicDocs and anything here disagree,
+RunicDocs wins: report the difference. This repository's own documents sit next to the code: the READMEs of
+`cpp/`, `proto/`, `go/` and `infra/` (the folder map), each module's `ARCHITECTURE.md`, `cmake/README.md` and this
+file. The Platform never links Godot.
 
 ## Read before changing anything
 
-1. `docs/README.md`
-2. `docs/system/01-architecture-overview.md`, `02-module-contract.md`, `03-dependency-rules.md`
-3. `docs/architecture.md`
-4. `docs/current-state.md`
-5. The module you are working on: `docs/modules/<Module>.md` (or `<directory>/ARCHITECTURE.md` once it exists)
-6. `docs/system/12-work-packages.md` and `docs/system/10-ai-development-workflow.md`
+1. The module or area you are working on: its folder's `README.md` and its `ARCHITECTURE.md` once it has one.
+2. RunicDocs › Architecture › Repositories, build targets and processes (Platform modules) and Platform and operations.
+3. RunicDocs › Architecture › Modules, work packages and the implementation contract — the package (write scope,
+   Done when, Needs, slice), the module contract and the Building with Claude Code cycle; RunicDocs › Development ›
+   the slice note for the package's slice.
+4. `cmake/README.md` (this repository's part of the build).
 
 ## Hard rules
 
@@ -50,7 +54,8 @@ docs are still v3 and lose to RunicDocs where they disagree. The Platform never 
   code; the Engine's configure-time headless check enforces it).
 - One work package = one module = one PR. Write only inside that module's directory, its build
   target and its docs; contract (interface and tests) approved before code; Stage A only.
-- Do not silently resolve items in `docs/system/11-open-questions.md`; ask.
+- Do not silently resolve open questions (RunicDocs › Architecture › Open questions, such as the canonical Go
+  module path); ask the owner.
 
 ## Build
 
@@ -70,10 +75,9 @@ go build ./... && go test ./...
 
 ## Docs maintenance
 
-- Update the module contract, `docs/modules/README.md` status, and `docs/current-state.md`
-  in the same change as the code.
-- `docs/system/` is mirrored in all three repositories; edit all copies together.
-- The docs carry generated Obsidian links: frontmatter tags, `[^…]` markers after names, and the
-  `## Connections` footer. Never edit them by hand; after any docs change, run
-  `python3 RunicEngine/scripts/docs/obsidian_graph.py RunicEngine RunicPlatform RunicGame --write` from the
-  folder that holds the three repositories (sibling checkouts).
+- In the same change as the code: the module's `ARCHITECTURE.md` (its contract and package status) and its folder's
+  `README.md` when what a folder holds changes. The PR closes the package's GitHub issue; RunicDocs' Development notes
+  read the status from the issues.
+- A change to the architecture or the plan is a RunicDocs change, made there by the owner or with the owner's
+  approval, never a copy here; `cmake/RunicPlatformCatalog.cmake` must equal RunicDocs' Platform modules table
+  (`checks.catalog_sync`).
