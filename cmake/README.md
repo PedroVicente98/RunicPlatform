@@ -6,7 +6,7 @@ This file is RunicPlatform's part of the BUILD-1 and BUILD-2 contracts. The cano
 | --- | --- |
 | Package | BUILD-1 (slice 0), Stage A |
 | Needs | RunicEngine's BUILD-1 merged first (this repository uses its helpers through the Engine pin) |
-| Status | **Done** in slice 0 and committed on `main`, where the Engine pin (`external/RunicEngine`) is at `b2450cf` (slice 0 with the single-source docs). BUILD-2 is on the `temp/build-2` branch for review, where the pin is at `2013e9b` (the Engine's BUILD-2 commit) |
+| Status | **Done** in slice 0 with BUILD-2, both merged into `main` by the slice 0 check; the Engine pin (`external/RunicEngine`) is at `2013e9b` (the Engine's BUILD-2 commit) |
 
 ## What BUILD-1 delivers here
 
@@ -14,7 +14,7 @@ This file is RunicPlatform's part of the BUILD-1 and BUILD-2 contracts. The cano
 | --- | --- |
 | Engine pin | `external/RunicEngine` pins an Engine commit on `main` that holds every package this repository needs. `RUNIC_ENGINE_DIR` keeps today's behavior (submodule when populated, else `../RunicEngine`; a superproject that already added the Engine wins) |
 | Engine in the build | The Platform now adds the Engine with `add_subdirectory`, with `RUNIC_ENGINE_BUNDLES=OFF`, `RUNIC_ENGINE_BUILD_TESTS=OFF`, `RUNIC_ENGINE_BUILD_TOOLS=OFF`, `RUNIC_BUILD_SANDBOX=OFF` and presentation off. The standalone build therefore configures the helpers and never Flecs, GLM, Jolt or Godot (RunicDocs › Repositories, build targets and processes › Platform modules). Since BUILD-2 it configures only the Engine modules listed in `RUNIC_ENGINE_MODULES` (none yet) and the third parties they link (GLM, once Core is listed) |
-| Catalog | [`cmake/RunicPlatformCatalog.cmake`](RunicPlatformCatalog.cmake): Contracts, Transport and ServerBindings with the Engine interface targets each may link. Written in this contract for review |
+| Catalog | [`cmake/RunicPlatformCatalog.cmake`](RunicPlatformCatalog.cmake): Contracts, Transport and ServerBindings with the Engine interface targets each may link |
 | Modules | `RUNIC_MODULE_NAMESPACE RunicPlatform`; each C++ module is created by its first package (PCT-1, PTR-1, PBND-1) with `runic_add_module`, under `cpp/<Module>/` (Contracts: `proto/`; the folder map is in the READMEs of `cpp/`, `proto/`, `go/` and `infra/`), and joins the build through `runic_add_catalog_modules` (BUILD-2) |
 | Bootstrap target | `Runic::Platform` (`cpp/Core/Version.cpp`) stays until RunicGame stops linking it; its smoke test becomes the GoogleTest test `PlatformBootstrap.Version` |
 | Tests | `RUNIC_PLATFORM_BUILD_TESTS` calls the Engine's `runic_enable_tests` (GoogleTest pinned once, in the Engine) |
@@ -64,7 +64,7 @@ The canonical part is the BUILD-2 section of [RunicEngine cmake/README.md](https
 
 ## Submodule pin
 
-`external/RunicEngine` moves in its own commit once the Engine commit is on `main`: it is at `b2450cf` on `main`. On
-the `temp/build-2` review branch it already names `2013e9b`, the Engine's BUILD-2 commit, so that branch reaches `main`
-after the Engine's, and both only by fast-forward, which keeps the pinned commit on the Engine's `main` (RunicGame
-pins this branch's commit in turn).
+`external/RunicEngine` is at `2013e9b`, the Engine's BUILD-2 commit. A pin moves in its own commit. During a slice,
+this repository's slice branch may pin a commit of the Engine's slice branch; the slice check merges the branches into
+`main` in Needs order (RunicEngine, RunicPlatform, RunicGame), by fast-forward or a merge commit, never squashed or
+rebased, so the pinned commit stays on the Engine's `main` (RunicGame pins this repository's commit in turn).
