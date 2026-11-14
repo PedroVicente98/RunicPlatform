@@ -1,5 +1,7 @@
 # RunicPlatform
 
+> **This is the `layout` branch: the planned folder layout.** Every C++ module, Contracts, Go and infrastructure folder of the Platform, each with the README that says what it will hold and which package fills it, as planned at the end of slice 1 (2026-11-14). `main` keeps only the folders in use: a package that needs a folder takes its README from here (`git checkout origin/layout -- <folder>/README.md`) and updates it. This branch is never merged; it changes only when RunicDocs changes the planned layout.
+
 RunicPlatform is the open-source (MIT) networking, services and infrastructure layer for MMORPGs built on RunicEngine: mechanisms any MMORPG can use, never one game's rules.
 
 > Status: slice 0 (build skeleton) done; no Platform module is implemented yet. The folders of every module already exist with a README (`cpp/`, `proto/`, `go/`, `infra/`).
