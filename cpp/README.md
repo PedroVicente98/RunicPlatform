@@ -11,6 +11,5 @@ Each C++ module has the module shape of the three repositories (`README.md`, `AR
 Contracts (the Protobuf schemas) live in [`proto/`](../proto/README.md); their generated C++ goes to the git-ignored
 `cpp/generated/`.
 
-`cpp/Core/` and `cpp/include/` are not part of this layout: they hold the bootstrap target `Runic::Platform` (a
-disposable `Version()`), which uses the Engine's `Runic::` namespace. RunicGame still links it; both go when the Game
-stops linking it (an open owner decision, recommended before slice 1).
+The bootstrap target `Runic::Platform` (`cpp/Core/`, `cpp/include/`) was removed in slice 1 (decision D1), once
+RunicGame stopped linking it; Contracts (PCT-1, slice 12) is the first C++ module.

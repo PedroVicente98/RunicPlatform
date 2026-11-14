@@ -42,7 +42,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-- The bootstrap library is `runic_platform` (alias `Runic::Platform`); `RUNIC_PLATFORM_BUILD_TESTS` defaults to ON only for a top-level build.
+- There is no C++ library yet: the bootstrap target `Runic::Platform` went with slice 1, and Contracts (PCT-1, slice 12) is the first module. `RUNIC_PLATFORM_BUILD_TESTS` defaults to ON only for a top-level build.
 - `RUNIC_ENGINE_DIR` points at the RunicEngine source tree: `external/RunicEngine` when the submodule is checked out, otherwise `../RunicEngine`. Override it with `-DRUNIC_ENGINE_DIR=<path>`. Nothing builds the Engine yet; the first C++ bindings (PTR-1, PBND-1) will, using only those interface targets.
 - Fetch the Engine pin when you need it: `git submodule update --init external/RunicEngine`.
 

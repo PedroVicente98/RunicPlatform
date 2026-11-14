@@ -21,7 +21,7 @@
     },
     {
       "label": "Platform: test (debug)",
-      "detail": "PlatformBootstrap.Version, the standalone build test (no Flecs, GLM, Jolt or Godot), the scans",
+      "detail": "The standalone build test (no Flecs, GLM, Jolt or Godot) and the scans",
       "type": "process",
       "command": "ctest",
       "args": ["--preset", "debug"],

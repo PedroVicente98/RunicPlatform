@@ -43,7 +43,7 @@ jobs:
         run: cmake --preset ci-${{ matrix.compiler }} -DRUNIC_DOCS_DIR="${{ github.workspace }}/RunicDocs"
       - name: Build
         run: cmake --build --preset ci-${{ matrix.compiler }}
-      - name: Test (bootstrap test, standalone build test, checks)
+      - name: Test (standalone build test, checks)
         run: ctest --preset ci-${{ matrix.compiler }}
 
   docs:
