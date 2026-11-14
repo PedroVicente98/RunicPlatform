@@ -2,7 +2,7 @@
 
 RunicPlatform is the open-source (MIT) networking, services and infrastructure layer for MMORPGs built on RunicEngine: mechanisms any MMORPG can use, never one game's rules.
 
-> Status: slice 0 (build skeleton) done; no Platform module is implemented yet. The folders of every module already exist with a README (`cpp/`, `proto/`, `go/`, `infra/`).
+> Status: slice 0 (build skeleton) done; slice 1 removed the bootstrap target. No Platform module is implemented yet, so `main` has no module folder: the planned ones (`cpp/`, `proto/`, `go/sdk/`, `go/services/`, `go/blocks/`, `go/cmd/`, `infra/`), each with its README, are on the `layout` branch until their first package (decided 2026-11-14).
 
 ## What it provides
 
@@ -42,7 +42,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-- The bootstrap library is `runic_platform` (alias `Runic::Platform`); `RUNIC_PLATFORM_BUILD_TESTS` defaults to ON only for a top-level build.
+- There is no C++ library yet: the bootstrap target `Runic::Platform` went with slice 1, and Contracts (PCT-1, slice 12) is the first module. `RUNIC_PLATFORM_BUILD_TESTS` defaults to ON only for a top-level build.
 - `RUNIC_ENGINE_DIR` points at the RunicEngine source tree: `external/RunicEngine` when the submodule is checked out, otherwise `../RunicEngine`. Override it with `-DRUNIC_ENGINE_DIR=<path>`. Nothing builds the Engine yet; the first C++ bindings (PTR-1, PBND-1) will, using only those interface targets.
 - Fetch the Engine pin when you need it: `git submodule update --init external/RunicEngine`.
 
@@ -59,8 +59,9 @@ go test ./...
 
 The architecture, the roadmap and the status of every package are in the RunicDocs vault
 ([pedrovicente98.github.io/RunicDocs](https://pedrovicente98.github.io/RunicDocs/)); this repository keeps no copy.
-Next to the code: the READMEs of `cpp/`, `proto/`, `go/` and `infra/`, each module's `ARCHITECTURE.md`, and
-[cmake/README.md](cmake/README.md) for the build. Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
+Next to the code: [go/README.md](go/README.md), each module's `README.md` and `ARCHITECTURE.md` once the module
+exists, and [cmake/README.md](cmake/README.md) for the build; the planned folders and their READMEs are on the
+`layout` branch. Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
 
 ## License
 

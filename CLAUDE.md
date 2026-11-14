@@ -14,13 +14,15 @@ The source of truth is ARCH v4 (RunicEngine — Technical Architecture), kept in
 (`../RunicDocs/content/Architecture/`). RunicDocs is the only place the architecture and the development plan are
 written: this repository keeps no copy of them (decided 2026-11-12). RunicDocs is edited on GitHub, so run
 `git -C ../RunicDocs pull` before reading it; the local clone can lag. When RunicDocs and anything here disagree,
-RunicDocs wins: report the difference. This repository's own documents sit next to the code: the READMEs of
-`cpp/`, `proto/`, `go/` and `infra/` (the folder map), each module's `ARCHITECTURE.md`, `cmake/README.md` and this
-file. The Platform never links Godot.
+RunicDocs wins: report the difference. This repository's own documents sit next to the code: each folder's
+`README.md` (the folder map), each module's `ARCHITECTURE.md`, `cmake/README.md` and this file. `main` holds only the
+folders in use; the planned ones (`cpp/`, `proto/`, `go/sdk/`, `go/services/`, `go/blocks/`, `go/cmd/`, `infra/`),
+each with its README, are on the `layout` branch (decided 2026-11-14). The Platform never links Godot.
 
 ## Read before changing anything
 
-1. The module or area you are working on: its folder's `README.md` and its `ARCHITECTURE.md` once it has one.
+1. The module or area you are working on: its folder's `README.md` (on the `layout` branch until its first package:
+   `git show origin/layout:<folder>/README.md`) and its `ARCHITECTURE.md` once it has one.
 2. RunicDocs › Architecture › Repositories, build targets and processes (Platform modules) and Platform and operations.
 3. RunicDocs › Architecture › Modules, work packages and the implementation contract — the package (write scope,
    Done when, Needs, slice), the module contract and the Building with Claude Code cycle; RunicDocs › Development ›
@@ -52,9 +54,11 @@ file. The Platform never links Godot.
 - Library types (GameNetworkingSockets, gRPC, NATS, Agones SDK, Prometheus client) never appear in a
   `Public/` header; C++ modules stay headless (no libgodot, godot-cpp, GodotBridge, GodotTools, audio or editor
   code; the Engine's configure-time headless check enforces it).
-- One work package = one module. Write only inside that module's directory, its build target and its docs;
-  contract (interface and tests) approved before code; Stage A only. Packages are built in the slice pipeline
-  (RunicDocs › Building with Claude Code); a package's commits sit on the slice branch and name the package.
+- One work package = one module. Write only inside that module's directory, its build target and its docs; contract
+  (interface and tests) approved before code; Stage A only. A package creates the folders it fills, each with its
+  README from the `layout` branch (`git checkout origin/layout -- <folder>/README.md`), and never moves or renames a
+  planned folder. Packages are built in the slice pipeline (RunicDocs › Building with Claude Code); a package's
+  commits sit on the slice branch and name the package.
 - Do not silently resolve open questions (RunicDocs › Architecture › Open questions, such as the canonical Go
   module path); ask the owner.
 

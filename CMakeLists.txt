@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.24)
 project(RunicPlatform VERSION 0.1.0 LANGUAGES CXX)
 
+# Tells a superproject (RunicGame) that the Platform is configured, so it is added once.
+set_property(GLOBAL PROPERTY RUNIC_PLATFORM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
 option(RUNIC_PLATFORM_BUILD_TESTS "RunicPlatform tests (GoogleTest) and the BUILD-1 acceptance tests" ${PROJECT_IS_TOP_LEVEL})
 
 # ---- RunicEngine: the helpers and the interface targets the C++ bindings link ----------------------------------
@@ -28,11 +31,9 @@ if(NOT _runic_engine_added)
             "Fetch the pinned submodule (git submodule update --init external/RunicEngine) or pass "
             "-DRUNIC_ENGINE_DIR=/path/to/RunicEngine (the *-siblings presets use ../RunicEngine).")
     endif()
-    set(RUNIC_ENGINE_BUNDLES OFF CACHE BOOL "Standalone Platform build: no Flecs, GLM or Jolt")
     set(RUNIC_ENGINE_BUILD_TESTS OFF CACHE BOOL "The Engine's own tests run in the Engine")
     set(RUNIC_ENGINE_BUILD_TOOLS OFF CACHE BOOL "No RunicEditor in the Platform")
     set(RUNIC_ENGINE_ENABLE_PRESENTATION OFF CACHE BOOL "The Platform never links Godot")
-    set(RUNIC_BUILD_SANDBOX OFF CACHE BOOL "The sandbox checks the bundle")
     set(RUNIC_ENGINE_MODULES "" CACHE STRING "The Engine modules the Platform links (none yet)")
     add_subdirectory("${RUNIC_ENGINE_DIR}" "${CMAKE_BINARY_DIR}/dependencies/engine")
 endif()
@@ -51,22 +52,11 @@ endif()
 # CMakeLists.txt; no package edits this file for it.
 runic_add_catalog_modules(ROOT cpp LAYOUT NAME FOLDERS Contracts=proto)
 
-# Bootstrap target: stays until RunicGame stops linking it. Not a module (no catalog row).
-add_library(runic_platform STATIC)
-add_library(Runic::Platform ALIAS runic_platform)
-target_sources(runic_platform PRIVATE cpp/Core/Version.cpp)
-target_include_directories(runic_platform PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp/include>"
-)
-runic_apply_toolchain(runic_platform)
+# The bootstrap target Runic::Platform went with slice 1 (decision D1), once RunicGame stopped linking it; the first
+# C++ module is Contracts (PCT-1, slice 12).
 
 # ---- Tests ------------------------------------------------------------------------------------------------------
 if(RUNIC_PLATFORM_BUILD_TESTS)
-    add_executable(RunicPlatformBootstrapTests tests/Bootstrap/BootstrapTests.cpp)
-    target_link_libraries(RunicPlatformBootstrapTests PRIVATE Runic::Platform GTest::gtest_main)
-    runic_apply_toolchain(RunicPlatformBootstrapTests)
-    gtest_discover_tests(RunicPlatformBootstrapTests DISCOVERY_MODE PRE_TEST PROPERTIES LABELS module)
-
     # BUILD-1 acceptance tests (contract: cmake/README.md).
     if(PROJECT_IS_TOP_LEVEL AND NOT RUNIC_BUILD_TESTS_NESTED)
         add_subdirectory(tests/build)
