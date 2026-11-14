@@ -2,7 +2,7 @@
 
 RunicPlatform is the open-source (MIT) networking, services and infrastructure layer for MMORPGs built on RunicEngine: mechanisms any MMORPG can use, never one game's rules.
 
-> Status: slice 0 (build skeleton) done; no Platform module is implemented yet. The folders of every module already exist with a README (`cpp/`, `proto/`, `go/`, `infra/`).
+> Status: slice 0 (build skeleton) done; slice 1 removed the bootstrap target. No Platform module is implemented yet, so `main` has no module folder: the planned ones (`cpp/`, `proto/`, `go/sdk/`, `go/services/`, `go/blocks/`, `go/cmd/`, `infra/`), each with its README, are on the `layout` branch until their first package (decided 2026-11-14).
 
 ## What it provides
 
@@ -59,8 +59,9 @@ go test ./...
 
 The architecture, the roadmap and the status of every package are in the RunicDocs vault
 ([pedrovicente98.github.io/RunicDocs](https://pedrovicente98.github.io/RunicDocs/)); this repository keeps no copy.
-Next to the code: the READMEs of `cpp/`, `proto/`, `go/` and `infra/`, each module's `ARCHITECTURE.md`, and
-[cmake/README.md](cmake/README.md) for the build. Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
+Next to the code: [go/README.md](go/README.md), each module's `README.md` and `ARCHITECTURE.md` once the module
+exists, and [cmake/README.md](cmake/README.md) for the build; the planned folders and their READMEs are on the
+`layout` branch. Contributors and Claude Code sessions follow [CLAUDE.md](CLAUDE.md).
 
 ## License
 

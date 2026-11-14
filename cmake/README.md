@@ -6,7 +6,7 @@ This file is RunicPlatform's part of the BUILD-1 and BUILD-2 contracts. The cano
 | --- | --- |
 | Package | BUILD-1 (slice 0), Stage A |
 | Needs | RunicEngine's BUILD-1 merged first (this repository uses its helpers through the Engine pin) |
-| Status | **Done** in slice 0 with BUILD-2, both merged into `main` by the slice 0 check; the Engine pin (`external/RunicEngine`) is at `2013e9b` (the Engine's BUILD-2 commit) |
+| Status | **Done** in slice 0 with BUILD-2, both merged into `main` by the slice 0 check; the Engine pin (`external/RunicEngine`) was then the Engine's BUILD-2 commit, `2013e9b` |
 
 ## What BUILD-1 delivers here
 
@@ -63,7 +63,8 @@ The canonical part is the BUILD-2 section of [RunicEngine cmake/README.md](https
 
 ## Submodule pin
 
-`external/RunicEngine` is at `2013e9b`, the Engine's BUILD-2 commit. A pin moves in its own commit. During a slice,
-this repository's slice branch may pin a commit of the Engine's slice branch; the slice check merges the branches into
-`main` in Needs order (RunicEngine, RunicPlatform, RunicGame), by fast-forward or a merge commit, never squashed or
-rebased, so the pinned commit stays on the Engine's `main` (RunicGame pins this repository's commit in turn).
+`external/RunicEngine` pins one Engine commit (`git submodule status` shows it). A pin moves in its own commit. During
+a slice, this repository's slice branch may pin a commit of the Engine's slice branch; the slice check merges the
+branches into `main` in Needs order (RunicEngine, RunicPlatform, RunicGame), by fast-forward or a merge commit, never
+squashed or rebased, so the pinned commit stays on the Engine's `main` (RunicGame pins this repository's commit in
+turn).

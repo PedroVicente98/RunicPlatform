@@ -5,12 +5,17 @@ canonical path: RunicDocs › Architecture › Open questions), with Go's own la
 `internal/` for private code, tests beside the code, the standard `testing` package. Folders are lowercase because
 they are Go packages.
 
+`platform/` is the only folder today: the bootstrap placeholder package, which leaves with the first real one.
+Generated Go code from `proto/` goes to the git-ignored `go/generated/`.
+
+## Planned folders
+
+Not created yet: each folder appears with its first package, which takes the folder's README from the `layout` branch
+(`git checkout origin/layout -- go/<folder>/README.md`; decided 2026-11-14).
+
 | Folder | Platform module | First package |
 | --- | --- | --- |
-| [`sdk/`](sdk/README.md) | GoSDK | PSDK-1 (slice 26) |
-| [`services/`](services/README.md) | CoreServices | PCS-1 (slice 27) |
-| [`blocks/`](blocks/README.md) | BuildingBlocks | PBB-1 (slice 28) |
-| [`cmd/`](cmd/README.md) | The executables of the services and blocks, one folder per binary | PSDK-1 (slice 26) |
-
-Generated Go code from `proto/` goes to the git-ignored `go/generated/`. `go/platform/` is the bootstrap placeholder
-package and leaves with the first real one.
+| `sdk/` | GoSDK | PSDK-1 (slice 26) |
+| `services/` | CoreServices | PCS-1 (slice 27) |
+| `blocks/` | BuildingBlocks | PBB-1 (slice 28) |
+| `cmd/` | The executables of the services and blocks, one folder per binary | PSDK-1 (slice 26) |
