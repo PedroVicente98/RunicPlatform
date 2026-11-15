@@ -34,6 +34,14 @@ each with its README, are on the `layout` branch (decided 2026-11-14). The Platf
 - Platform owns **mechanisms, never game policy**: no game rules, names, numbers or content in code,
   tests or docs (for example no inventory, quest, trade, economy or combat rules). Game services are
   RunicGame code built on the Go SDK, the item ledger and the wallets.
+- **Named values** (decided by the owner on 2026-11-15; RunicDocs › Module contract). Production code (C++ modules, Go
+  packages and services) writes no bare string or number: every value with a meaning (a name, flag, key, path, size,
+  rate, time, count, threshold, coordinate, exit code) is a named constant (`constexpr` with a `k` prefix in C++,
+  `const` in Go), defined once in the narrowest scope its users share, and every use refers to it. 0 and 1, true and
+  false included: the name says what the choice affects (`RequestStop(kCleanExit)`, `maxFrames = kRunUntilStopped`); a
+  field or setter named for the value counts as its name (`bool pressed = false`), and loop counters and a formula's
+  own arithmetic stay bare (`i = 0`, `n + 1`). A log or error message used once keeps its wording where it is used,
+  with its values from the constants; tests may write their values directly.
 - Never depend on RunicGame.
 - Link only the Engine interface targets: `Runic::NetworkTransport` (header-only transport interface
   and connect-ticket hook), `Runic::SimulationPort` (header-only service port), `Runic::Application`
