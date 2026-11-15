@@ -39,18 +39,7 @@ add_test(NAME build.platform_standalone
         "-DGENERATOR=${CMAKE_GENERATOR}"
         -P "${DRIVERS}/RunFixture.cmake")
 
-# The bootstrap smoke test runs as a GoogleTest test discovered by CTest.
-add_test(NAME build.platform_bootstrap_gtest
-    COMMAND "${CMAKE_COMMAND}"
-        "-DFIXTURE=${RUNIC_PLATFORM_SOURCE}"
-        "-DWORK=${WORK}/platform_bootstrap_gtest"
-        "-DENGINE=${RUNIC_BUILD_TESTS_ENGINE}"
-        "-DEXPECT=pass"
-        "-DARGS=-DRUNIC_PLATFORM_BUILD_TESTS=ON"
-        "-DTEST_REGEX=PlatformBootstrap\\.Version"
-        "-DGENERATOR=${CMAKE_GENERATOR}"
-        -P "${DRIVERS}/RunFixture.cmake")
-set_tests_properties(build.platform_standalone build.platform_bootstrap_gtest PROPERTIES LABELS build)
+set_tests_properties(build.platform_standalone PROPERTIES LABELS build)
 
 # The catalog equals the Platform modules table in RunicDocs; the repository passes both scans.
 include("${DRIVERS}/CatalogSyncTest.cmake")

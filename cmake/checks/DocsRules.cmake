@@ -1,7 +1,8 @@
 # DocsCheck rules for RunicPlatform (passed with -DRULES): a code change under a C++ module (cpp/<Module>/) needs
 # cpp/<Module>/ARCHITECTURE.md; a code change under a Go area (go/sdk/, go/services/, go/blocks/) needs that
-# area's ARCHITECTURE.md (its contract and package status, written by the area's first package). The bootstrap
-# folders (cpp/include/, cpp/Core/, go/platform/), go/cmd/ (executables) and generated code have no contract.
+# area's ARCHITECTURE.md (its contract and package status, written by the area's first package). The former
+# bootstrap folders (cpp/include/, cpp/Core/, removed in slice 1: their deletion is not a module change), the Go
+# bootstrap placeholder (go/platform/), go/cmd/ (executables) and generated code have no contract.
 function(runic_docs_rule path out_module out_contracts)
     set(module "")
     set(contracts "")
